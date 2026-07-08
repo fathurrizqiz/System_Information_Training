@@ -1,0 +1,46 @@
+import { expect, test } from '@playwright/test';
+
+test('Program Eksternal Kosong', async ({ page }) => {
+    await page.goto('http://localhost:8000/login');
+
+    await page
+        .getByRole('textbox', { name: 'Enter your Employee ID' })
+        .fill('005100439');
+
+    await page
+        .getByRole('textbox', { name: 'Enter Password' })
+        .fill('005100439');
+
+    await page.getByRole('button', { name: 'Sign in →' }).click();
+
+    await expect(page).toHaveURL(/dashboard/);
+
+    await page.getByRole('link', { name: 'Rencana Diklat' }).click();
+
+    const eksternalLink = page.locator('a[href="/RencanaDiklat/RPT/PN"]');
+
+    await expect(eksternalLink).toBeVisible({
+        timeout: 10000,
+    });
+
+    await eksternalLink.click();
+
+    await expect(page).toHaveURL(/RencanaDiklat\/RPT\/PN/);
+
+    // tunggu halaman Eksternal siap
+    await expect(
+        page.getByRole('button', { name: 'Tambah Program' }),
+    ).toBeVisible({
+        timeout: 10000,
+    });
+
+    await page.getByRole('button', { name: 'Tambah Program' }).click();
+
+    await expect(page.getByRole('button', { name: 'Simpan' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Simpan' }).click();
+
+    await expect(
+        page.getByText('Periksa kembali data yang dimasukkan'),
+    ).toBeVisible();
+});

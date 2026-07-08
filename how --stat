@@ -1,0 +1,184 @@
+[33mcommit 270f31249e1a00355e624e035797c5837b13ba71[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: fathurrizqiz <ezzdarkrap@gmail.com>
+Date:   Sun Mar 29 00:39:34 2026 +0700
+
+    push
+
+[1mdiff --git a/app/Http/Controllers/Evaluasi/EvaluasiController.php b/app/Http/Controllers/Evaluasi/EvaluasiController.php[m
+[1mindex 1ec6795..96d5993 100644[m
+[1m--- a/app/Http/Controllers/Evaluasi/EvaluasiController.php[m
+[1m+++ b/app/Http/Controllers/Evaluasi/EvaluasiController.php[m
+[36m@@ -3,26 +3,144 @@[m
+ namespace App\Http\Controllers\Evaluasi;[m
+ [m
+ use App\Http\Controllers\Controller;[m
+[32m+[m[32muse App\Models\DetailInternal;[m
+ use App\Models\DiklatKaryawan;[m
+[32m+[m[32muse App\Models\EvaluasiDetailInternal;[m
+ use App\Models\PendidikanFormalModels;[m
+ use Illuminate\Http\Request;[m
+[32m+[m[32muse Illuminate\Support\Facades\Http;[m
+ use Inertia\Inertia;[m
+ [m
+ class EvaluasiController extends Controller[m
+ {[m
+     public function index()[m
+     {[m
+[31m-        $evaluasi1 = DiklatKaryawan::all();[m
+[32m+[m[32m        $evaluasi1 = DiklatKaryawan::all()->map(function ($item) {[m
+[32m+[m
+[32m+[m[32m            $comments = [[m
+[32m+[m[32m                $item->evaluasimateri,[m
+[32m+[m[32m                $item->evaluasipengajar[m
+[32m+[m[32m            ];[m
+[32m+[m
+[32m+[m[32m            $positive = 0;[m
+[32m+[m[32m            $negative = 0;[m
+[32m+[m
+[32m+[m[32m            foreach ($comments as $text) {[m
+[32m+[m[32m                if (!$text)[m
+[32m+[m[32m                    continue;[m
+[32m+[m
+[32m+[m[32m                $result = $this->analyzeSentiment($text);[m
+[32m+[m
+[32m+[m[32m                if (!$result)[m
+[32m+[m[32m                    continue;[m
+[32m+[m
+[32m+[m[32m                if ($result['label'] == "1") {[m
+[32m+[m[32m                    $positive++;[m
+[32m+[m[32m                } else {[m
+[32m+[m[32m                    $negative++;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            $item->sentiment = [[m
+[32m+[m[32m                'positive' => $positive,[m
+[32m+[m[32m                'negative' => $negative,[m
+[32m+[m[32m            ];[m
+[32m+[m
+[32m+[m[32m            return $item;[m
+[32m+[m[32m        });[m
+[32m+[m
+         $evaluasi2 = PendidikanFormalModels::with([[m
+[31m-            'details:id,program_id,nama_diklat',[m
+[31m-            'details.evaluasi:id,detail_id,evaluasipengajar,evaluasimateri'[m
+[32m+[m[32m            'details' => function ($q) {[m
+[32m+[m[32m                $q->select('id', 'program_id', 'nama_diklat')[m
+[32m+[m[32m                    ->with([[m
+[32m+[m[32m                        'evaluasi' => function ($q2) {[m
+[32m+[m[32m                            $q2->select('id', 'detail_id', 'evaluasipengajar', 'evaluasimateri');[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                    ]);[m
+[32m+[m[32m            }[m
+         ])[m
+             ->select('id', 'nama_program')[m
+[31m-            ->get();[m
+[32m+[m[32m            ->get()[m
+[32m+[m[32m            ->map(function ($program) {[m
+[32m+[m[32m                $program->details->map([m
+[32m+[m[32m                    function ($detail) {[m
+[32m+[m
+[32m+[m
+[32m+[m[32m                        $detail->sentiment = [[m
+[32m+[m[32m                            'positive' => rand(5, 15),[m
+[32m+[m
+[32m+[m[32m                            'negative' => rand(1, 5),[m
+[32m+[m[32m                        ];[m
+[32m+[m[32m                        return $detail;[m
+[32m+[m[32m                    }[m
+[32m+[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m                return $program;[m
+[32m+[m[32m            });[m
+[32m+[m
+[32m+[m[32m        return Inertia::render('Evaluasi/evaluasi', [[m
+[32m+[m[32m            'evaluasiKaryawan' => $evaluasi1,[m
+[32m+[m[32m            'evaluasiInternal' => $evaluasi2[m
+[32m+[m[32m        ]);[m
+[32m+[m[32m    }[m
+[32m+[m[32m    public function show($id)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        $detail = DetailInternal::findOrFail($id);[m
+[32m+[m
+[32m+[m[32m        $comments = [];[m
+[32m+[m
+[32m+[m[32m        $results = [];[m
+[32m+[m
+[32m+[m[32m        foreach ($comments as $text) {[m
+[32m+[m[32m            $res = $this->analyzeSentiment($text);[m
+[32m+[m
+[32m+[m[32m            if ($res) {[m
+[32m+[m[32m                $results[] = $res;[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        $positive = collect($results)->where('label', '0')->count();[m
+[32m+[m[32m        $negative = collect($results)->where('label', '1')->count();[m
+[32m+[m[41m        [m
+ [m
+[31m-        return Inertia::render('Evaluasi/evaluasi',[[m
+[31m-            'evaluasiKaryawan'=>$evaluasi1,[m
+[31m-            'evaluasiInternal'=>$evaluasi2[m
+[32m+[m[32m        foreach ($comments as $text) {[m
+[32m+[m[32m            $text = strtolower($text);[m
+[32m+[m
+[32m+[m[32m            if (str_contains($text, 'bagus') || str_contains($text, 'baik')) {[m
+[32m+[m[32m                $positive++;[m
+[32m+[m[32m            } else (str_contains($text, 'kurang') || str_contains($text, 'buruk')) {[m
+[32m+[m[32m                $negative++;[m
+[32m+[m[32m            }[m[41m [m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return Inertia::render('Evaluasi/detail', [[m
+[32m+[m[32m            'detail' => $detail,[m
+[32m+[m[32m            'comments' => $comments,[m
+[32m+[m[32m            'sentiment' => [[m
+[32m+[m[32m                'positive' => $positive,[m
+[32m+[m[41m       [m
+[32m+[m[32m                'negative' => $negative,[m
+[32m+[m[32m            ][m
+         ]);[m
+     }[m
+[32m+[m
+[32m+[m[32m    // Helper untuk AI[m
+[32m+[m[32m    private function analyzeSentiment($text)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            $response = Http::timeout(5)->post('http://127.0.0.1:8000/predict', [[m
+[32m+[m[32m                'text' => $text[m
+[32m+[m[32m            ]);[m
+[32m+[m
+[32m+[m[32m            if ($response->successful()) {[m
+[32m+[m[32m                return $response->json();[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            return null;[m
+[32m+[m[32m        } catch (\Exception $e) {[m
+[32m+[m[32m            \Log::error('AI Error: ' . $e->getMessage());[m
+[32m+[m[32m            return null;[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+ }[m
+[1mdiff --git a/app/Http/Controllers/RencanaDiklat/RPT/DetailPeriodeController.php b/app/Http/Controllers/RencanaDiklat/RPT/DetailPeriodeController.php[m
+[1mindex 166f995..125866f 100644[m
+[1m--- a/app/Http/Controllers/RencanaDiklat/RPT/DetailPeriodeController.php[m
+[1m+++ b/app/Http/Controllers/RencanaDiklat/RPT/DetailPeriodeController.php[m
+[36m@@ -51,6 +51,12 @@[m [mpublic function index(Request $request, $detail_id)[m
+                     'jenis_kelamin' => $item->karyawan->jenis_kelamin,[m
+                 ];[m
+             });[m
+[32m+[m[32m        // Log::info('PERIODE ID MASUK', [[m
+[32m+[m[32m        //     'request_periode_id' => $request->periode_id[m
+[32m+[m[32m        // ]);[m
+[32m+[m[32m        // Log::info('DATA DI DB', [[m
+[32m+[m[32m        //     'count' => PeriodeBagianDetailInternal::where('periode_id', $request->periode_id)->count()[m
+[32m+[m[32m        // ]);[m
+ [m
+ [m
+         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/DetailPeriode/index', [[m
+[1mdiff --git a/app/Http/Controllers/RencanaDiklat/RPT/PostPreeController.php b/app/Http/Controllers/RencanaDiklat/RPT/PostPreeController.php[m
+[1mindex c963a2f..2f48d58 100644[m
+[1m--- a/app/Http/Controllers/RencanaDiklat/RPT/PostPreeController.php[m
+[1m+++ b/app/Http/Controllers/RencanaDiklat/RPT/PostPreeController.php[m
+[36m@@ -565,9 +565,9 @@[m [mpublic function submitEvaluasi(Request $re
