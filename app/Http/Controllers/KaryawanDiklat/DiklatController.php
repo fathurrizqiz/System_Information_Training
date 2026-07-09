@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DiklatEksternal;
 use App\Models\DiklatKaryawan;
 use App\Models\HLCManajement;
-use App\Models\karyawans;
+use App\Models\Karyawans;
 use App\Models\RekapJamDiklat;
 use App\Models\TargetJamModels;
 use Carbon\Carbon;
@@ -20,9 +20,7 @@ class DiklatController extends Controller
     {
         $user = auth()->user();
 
-        $karyawan = \DB::table('karyawans')
-            ->where('nrp', $user->nrp)
-            ->first();
+        $karyawan = Karyawans::where('nrp', $user->nrp)->first();
 
         if (!$karyawan) {
             return abort(403, 'Data karyawan tidak ditemukan untuk user ini.');
