@@ -3,6 +3,7 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
+import { ref, nextTick } from 'vue';
 
 interface Template {
     id: number;
@@ -20,6 +21,33 @@ const form = useForm({
     slug: '',
     pesan: '',
 });
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+const insertPlaceholder = async(placeholder: string) => {
+    const textarea = textareaRef.value;
+
+    if (!textarea) {
+        form.pesan += placeholder;
+        return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    form.pesan =
+        form.pesan.substring(0, start) +
+        placeholder +
+        form.pesan.substring(end);
+
+    await nextTick();
+
+    textarea.focus();
+
+    const cursor = start + placeholder.length;
+    textarea.setSelectionRange(cursor, cursor);
+};
+
 
 const submit = () => {
     form.post(route('template.store'), {
@@ -144,6 +172,7 @@ const deleteTemplate = (id: number) => {
                             <textarea
                                 v-model="form.pesan"
                                 rows="6"
+                                ref="textareaRef"
                                 class="w-full rounded-lg border-gray-200 font-mono text-sm focus:ring-green-500"
                                 placeholder="Halo {nama}, jadwal diklat {judul} akan dilaksanakan pada {tanggal}..."
                             ></textarea>
@@ -159,22 +188,20 @@ const deleteTemplate = (id: number) => {
                                 Placeholder Tersedia:
                             </p>
                             <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700"
-                                    >{nama}</span
-                                >
-                                <span
-                                    class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700"
-                                    >{judul}</span
-                                >
-                                <span
-                                    class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700"
-                                    >{tanggal}</span
-                                >
-                                <span
-                                    class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700"
-                                    >{lokasi}</span
-                                >
+                                <button type="button" @click="insertPlaceholder('{nama}')" class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700 hover:bg-blue-100">
+                                    {nama}
+
+                                </button>
+                                <button type="button" @click="insertPlaceholder('{judul}')" class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700 hover:bg-blue-100">
+                                    {judul}
+                                </button>
+                                <button type="button" @click="insertPlaceholder('{tanggal}')" class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700 hover:bg-blue-100">
+                                    {tanggal}
+                                </button>
+                                <button type="button" @click="insertPlaceholder('{lokasi}')" class="rounded border border-blue-200 bg-white px-2 py-1 font-mono text-[10px] text-blue-700 hover:bg-blue-100">
+                                    {lokasi}
+                                </button>
+                                
                             </div>
                         </div>
 
