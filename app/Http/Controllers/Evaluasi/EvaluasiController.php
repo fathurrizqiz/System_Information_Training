@@ -183,22 +183,57 @@ class EvaluasiController extends Controller
     }
 
     // Helper untuk AI
+    // private function analyzeSentiment($materi = null, $pemateri = null)
+    // {
+    //     try {
+    //         $response = Http::timeout(1000)->post('http://127.0.0.1:5000/predict', [
+    //             'materi' => $materi,
+    //             'pemateri' => $pemateri
+    //         ]);
+
+    //         if ($response->successful()) {
+    //             return $response->json();
+    //         }
+
+    //         return null;
+    //     } catch (\Exception $e) {
+    //         \Log::error('AI Error: ' . $e->getMessage());
+    //         return null;
+    //     }
+    // }
+
+    // AI Hunging Face
     private function analyzeSentiment($materi = null, $pemateri = null)
     {
-        try {
-            $response = Http::timeout(1000)->post('http://127.0.0.1:5000/predict', [
-                'materi' => $materi,
-                'pemateri' => $pemateri
-            ]);
+        // Jika keduanya kosong, tidak perlu call API
+        if (empty($materi) && empty($pemateri)) {
+            return null;
+        }
 
-            if ($response->successful()) {
-                return $response->json();
+        try {
+            $hfSpaceUrl = env('AI_SERVICE_URL', 'https://vampire123456-indobert-api-service.hf.space');
+
+            // Timeout 30 detik.
+            $response = Http::timeout(30)
+                ->withOptions([
+                    'verify' => false //SSL sementara
+                ])
+                ->post($hfSpaceUrl . '/predict', [
+                    'materi' => $materi,
+                    'pemateri' => $pemateri
+                ]);
+
+            if ($response->failed()) {
+                Log::error('AI Service Failed', ['status' => $response->status(), 'body' => $response->body()]);
+                return null; 
             }
 
-            return null;
+            return $response->json();
+
         } catch (\Exception $e) {
-            \Log::error('AI Error: ' . $e->getMessage());
+            Log::error('AI Connection Error', ['message' => $e->getMessage()]);
             return null;
         }
     }
+
 }

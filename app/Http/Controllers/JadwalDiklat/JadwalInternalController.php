@@ -28,7 +28,13 @@ class JadwalInternalController extends Controller
 
         // 1. Internal
         $internal = PeriodeUtama::with('detail') // Ganti detailProgram menjadi detail
-            ->whereHas('peserta')
+            ->whereHas('peserta', function ($q) {
+                if(auth()->user()->role !== 'admin_diklat') {
+                    return $q; 
+                } else {
+                    return $q->where('nrp', auth()->user()->nrp); // Non-admin hanya melihat peserta mereka sendiri
+                }
+            })
             ->where('tanggal', '>=', Carbon::today())
             ->when(
                 $search,
