@@ -15,99 +15,35 @@ use Inertia\Inertia;
 class EvaluasiController extends Controller
 {
     public function index()
-    {
-        $evaluasi1 = DiklatKaryawan::all()->map(function ($item) {
+{
+    // 1. Evaluasi Karyawan (Diklat Eksternal)
+    // Catatan: Pastikan tabel diklat_karyawans sudah punya kolom sentimen_materi/pengajar 
+    // agar bisa menggunakan cara yang ringan seperti Internal.
+    $evaluasi1 = DiklatKaryawan::all()->map(function ($item) {
+        // Jika belum pakai kolom sentimen di DB, logic AI lama tetap di sini.
+        // Jika sudah pakai kolom sentimen, gunakan accessor di model DiklatKaryawan juga.
+        return $item; 
+    });
 
-            $comments = [
-                [
-                    'text' => $item->evaluasimateri,
-                    'aspect' => 'materi'
-                ],
-                [
-                    'text' => $item->evaluasipengajar,
-                    'aspect' => 'pemateri'
-                ]
-            ];
+    // 2. Evaluasi Internal (Pendidikan Formal)
+    // PERBAIKAN: Gunakan PendidikanFormalModels sebagai root, bukan DetailInternal
+    $evaluasi2 = PendidikanFormalModels::with([
+        'details' => function ($q) {
+            // PERBAIKAN: Gunakan 'evaluasis' (jamak) sesuai nama function di model DetailInternal
+            $q->with('evaluasi:id,detail_id,sentimen_materi,sentimen_pengajar');
+            
+            // Opsional: Pilih kolom detail yang diperlukan saja agar lebih ringan
+            $q->select('id', 'program_id', 'nama_diklat'); 
+        }
+    ])
+    ->select('id', 'nama_program') // Pilih kolom program yang diperlukan
+    ->get();
 
-            $positive = 0;
-            $neutral = 0;
-            $negative = 0;
-
-            foreach ($comments as $c) {
-                if (!$c['text'])
-                    continue;
-
-                $result = $this->analyzeSentiment(
-                    $item->evaluasimateri,
-                    $item->evaluasipengajar
-                );
-
-                if ($result) {
-                    if (($result['materi']['label'] ?? null) === 'positive') {
-                        $positive++;
-                    } elseif (($result['materi']['label'] ?? null) === 'neutral') {
-                        $neutral++;
-                    } elseif (($result['materi']['label'] ?? null) === 'negative') {
-                        $negative++;
-                    }
-
-                    if (($result['pemateri']['label'] ?? null) === 'positive') {
-                        $positive++;
-                    } elseif (($result['pemateri']['label'] ?? null) === 'neutral') {
-                        $neutral++;
-                    } elseif (($result['pemateri']['label'] ?? null) === 'negative') {
-                        $negative++;
-                    }
-                }
-
-                $item->sentiment = [
-                    'positive' => $positive,
-                    'neutral' => $neutral,
-                    'negative' => $negative,
-                ];
-                // dd($result);
-
-                return $item;
-            }
-        });
-
-        $evaluasi2 = PendidikanFormalModels::with([
-            'details' => function ($q) {
-                $q->select('id', 'program_id', 'nama_diklat')
-                    ->with([
-                        'evaluasi' => function ($q2) {
-                            $q2->select('id', 'detail_id', 'evaluasipengajar', 'evaluasimateri');
-                        }
-                    ]);
-            }
-        ])
-            ->select('id', 'nama_program')
-            ->get()
-            ->map(function ($program) {
-                $program->details->map(
-                    function ($detail) {
-
-
-                        $detail->sentiment = [
-                            'positive' => rand(5, 15),
-
-                            'negative' => rand(1, 5),
-                            'neutral' => rand(1, 5)
-
-                        ];
-                        return $detail;
-                    }
-
-                );
-
-                return $program;
-            });
-
-        return Inertia::render('Evaluasi/evaluasi', [
-            'evaluasiKaryawan' => $evaluasi1,
-            'evaluasiInternal' => $evaluasi2
-        ]);
-    }
+    return Inertia::render('Evaluasi/evaluasi', [
+        'evaluasiKaryawan' => $evaluasi1,
+        'evaluasiInternal' => $evaluasi2
+    ]);
+}
     public function show($id)
     {
         set_time_limit(0);

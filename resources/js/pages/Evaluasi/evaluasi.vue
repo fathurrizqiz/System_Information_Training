@@ -14,15 +14,19 @@ interface Evaluasi {
     evaluasipengajar: string;
 }
 
-interface Sentiment {
+// Update interface untuk menyesuaikan dengan output Model Laravel
+interface SummarySentiment {
     positive: number;
     negative: number;
+    neutral: number;
+    total_comments: number;
+    is_evaluated: boolean;
 }
 
 interface Detail {
     id: number;
     nama_diklat: string;
-    sentiment?: Sentiment | null;
+    summary_sentiment?: SummarySentiment | null; // Ganti sentiment lama dengan summary
 }
 
 interface Program {
@@ -42,10 +46,9 @@ const props = defineProps<{
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-7xl space-y-8 p-4 md:p-6 lg:p-8">
-            
             <!-- Page Header -->
             <div class="flex flex-col gap-2">
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
                     Evaluasi Pelatihan
                 </h1>
                 <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -55,6 +58,7 @@ const props = defineProps<{
 
             <div class="grid gap-8 lg:grid-cols-12">
                 
+                <!-- SECTION: RINGKASAN PROGRAM -->
                 <section class="lg:col-span-5 xl:col-span-4">
                     <div class="mb-4 flex items-center gap-2">
                         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
@@ -102,33 +106,54 @@ const props = defineProps<{
                                             {{ detail.nama_diklat }}
                                         </p>
                                         
-                                      
-                                        <span v-if="detail.sentiment" class="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                            Dievaluasi
+                                        <!-- BADGE STATUS (DIPERBAIKI) -->
+                                        <span 
+                                            v-if="detail.summary_sentiment?.is_evaluated" 
+                                            class="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                        >
+                                            Dievaluasi ({{ detail.summary_sentiment.total_comments }})
                                         </span>
-                                        <span v-else class="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                        <span 
+                                            v-else 
+                                            class="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                        >
                                             Belum
                                         </span>
                                     </div>
 
-                                    <!-- Block Sentimen (Jika ada) -->
+                                    <!-- BLOCK SENTIMEN (DIGABUNGKAN & DIPERBAIKI) -->
+                                    <!-- Hanya muncul jika sudah dievaluasi -->
                                     <div
-                                        v-if="detail.sentiment && detail.sentiment.positive !== undefined"
+                                        v-if="detail.summary_sentiment?.is_evaluated"
                                         class="cursor-pointer rounded-md bg-white p-3 shadow-sm ring-1 ring-slate-200 transition-all group-hover:ring-blue-300 dark:bg-slate-900 dark:ring-slate-700 dark:group-hover:ring-blue-700"
                                         @click="$inertia.visit(`/Diklat/Evaluasi/detail/${detail.id}`)"
                                     >
                                         <div class="mb-2 flex items-center justify-between">
-                                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">Sentimen</span>
-                                            <svg class="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                                                Analisis Sentimen
+                                            </span>
+                                            <svg class="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
                                         </div>
-                                        <div class="flex items-center gap-4 text-sm font-medium">
+                                        
+                                        <div class="flex items-center justify-between text-sm font-medium">
+                                            <!-- Positif -->
                                             <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                {{ detail.sentiment?.positive }}
+                                                <span>{{ detail.summary_sentiment.positive }}</span>
                                             </div>
+                                            
+                                            <!-- Netral -->
+                                            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                <span>{{ detail.summary_sentiment.neutral }}</span>
+                                            </div>
+
+                                            <!-- Negatif -->
                                             <div class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                {{ detail.sentiment?.negative }}
+                                                <span>{{ detail.summary_sentiment.negative }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -138,7 +163,7 @@ const props = defineProps<{
                     </div>
                 </section>
 
-                
+                <!-- SECTION: FEEDBACK KARYAWAN (TETAP SAMA) -->
                 <section class="lg:col-span-7 xl:col-span-8">
                     <div class="mb-4 flex items-center gap-2">
                         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
@@ -152,7 +177,6 @@ const props = defineProps<{
                     </div>
 
                     <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6 dark:border-slate-800 dark:bg-slate-900">
-                        
                         <!-- Empty State -->
                         <div v-if="!evaluasiKaryawan || !evaluasiKaryawan.length" class="py-8 text-center">
                             <p class="text-slate-500 dark:text-slate-400">Belum ada feedback dari peserta diklat.</p>
@@ -180,25 +204,18 @@ const props = defineProps<{
 
                                 <!-- Konten Evaluasi -->
                                 <div class="mt-2 flex flex-col gap-3">
-                                    <!-- Evaluasi Materi -->
                                     <div v-if="item.evaluasimateri" class="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/50">
                                         <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400">Materi</span>
-                                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                                            "{{ item.evaluasimateri }}"
-                                        </p>
+                                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">"{{ item.evaluasimateri }}"</p>
                                     </div>
                                     
-                                    <!-- Evaluasi Pengajar -->
                                     <div v-if="item.evaluasipengajar" class="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/50">
                                         <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400">Pengajar</span>
-                                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                                            "{{ item.evaluasipengajar }}"
-                                        </p>
+                                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">"{{ item.evaluasipengajar }}"</p>
                                     </div>
 
-                                    <!-- Fallback jika belum ada feedback sama sekali -->
                                     <div v-if="!item.evaluasimateri && !item.evaluasipengajar" class="text-sm italic text-slate-400">
-                                        Peserta belum memberikan ulasan materi maupun pengajar.
+                                        Peserta belum memberikan ulasan.
                                     </div>
                                 </div>
                             </div>

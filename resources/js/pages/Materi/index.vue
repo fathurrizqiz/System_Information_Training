@@ -277,7 +277,7 @@ const deleteMateri = (id: number) => {
                                 <span 
                                     class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
                                     :class="{
-                                        'bg-amber-50 text-amber-600': item.status === 'pending',
+                                        'bg-amber-50 text-amber-600': item.status === 'pending' && roles.includes('admin_diklat'),
                                         'bg-green-50 text-green-600': item.status === 'verified' || item.status === 'approved'
                                     }"
                                 >

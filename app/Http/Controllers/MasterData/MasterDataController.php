@@ -15,7 +15,7 @@ class MasterDataController extends Controller
     public function index()
     {
         // Ambil data karyawan dengan semua relasi diklat
-        $data = MasterDataModels::with([
+        $data = Karyawans::with([
             'diklatByNrp',
             'diklatHlc',
             'diklatEksternal',

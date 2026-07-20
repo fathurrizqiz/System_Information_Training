@@ -13,7 +13,14 @@ class MateriController extends Controller
     {
         // Parent null → root folder.
         // Parent id → isi folder.
-        $materi = MateriModel::where('parent_id', $folderId)
+        $query = MateriModel::where('parent_id', $folderId);
+
+        if(auth()->user()->hasRole('admin_diklat')) {   
+        }else {
+            $query->where('status', 'verified');
+        }
+
+        $materi = $query
             ->orderBy('type')
             ->orderBy('title')
             ->get();

@@ -277,11 +277,11 @@ const getBadgeClass = (jenis: string) => {
                 >
                     <!-- Klinis -->
                     <div
-                        class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                        class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-blue-300 p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                     >
                         <div class="flex items-start justify-between">
                             <span
-                                class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
+                                class="text-xs font-semibold tracking-wider text-white uppercase dark:text-slate-400"
                                 >Klinis</span
                             >
                             <button
@@ -306,10 +306,10 @@ const getBadgeClass = (jenis: string) => {
                         </div>
                         <div class="mt-4 flex items-baseline gap-1.5">
                             <span
-                                class="text-3xl font-bold text-slate-900 dark:text-white"
+                                class="text-3xl font-bold text-white dark:text-white"
                                 >{{ targetJam['KLINIS'] }}</span
                             >
-                            <span class="text-sm font-medium text-slate-500"
+                            <span class="text-sm font-medium text-white"
                                 >Jam</span
                             >
                         </div>
@@ -317,7 +317,7 @@ const getBadgeClass = (jenis: string) => {
 
                     <!-- Non Klinis -->
                     <div
-                        class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                        class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-gray-200 p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                     >
                         <div class="flex items-start justify-between">
                             <span
@@ -357,7 +357,7 @@ const getBadgeClass = (jenis: string) => {
 
                     <!-- Manajerial Klinis -->
                     <div
-                        class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                        class="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-green-100 p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                     >
                         <div class="flex items-start justify-between">
                             <span

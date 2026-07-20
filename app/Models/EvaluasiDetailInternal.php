@@ -11,9 +11,13 @@ class EvaluasiDetailInternal extends Model
         'detail_id',
         'evaluasimateri',
         'evaluasipengajar',
+        'sentimen_materi', // Tambahkan ini
+        'sentimen_pengajar' // Tambahkan ini
     ];
     public function detail()
     {
         return $this->belongsTo(DetailInternal::class, 'detail_id');
     }
+
+    
 }

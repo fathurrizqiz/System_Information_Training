@@ -5,6 +5,7 @@ namespace App\Http\Controllers\RencanaDiklat\RPT;
 use App\Http\Controllers\Controller;
 use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
+use App\Models\InternalMeetModels;
 use App\Models\Karyawans;
 use App\Models\PendidikanFormalModels;
 use App\Models\PeriodeUtama;
@@ -109,6 +110,29 @@ class DiklatInternalController extends Controller
             'token_link' => $tokenLink,
         ]);
     }
+
+    public function saveLinkZoom(Request $request)
+    {
+        $validated = $request->validate([
+            'periode_id' => 'required|exists:periode_detail_internal,id',
+            'link_zoom' => 'required|url',
+        ]);
+
+        // Cek apakah sudah ada link untuk periode ini
+        $existingLink = InternalMeetModels::where('periode_id', $validated['periode_id'])->first();
+
+        if ($existingLink) {
+            // Update link yang sudah ada
+            $existingLink->update(['link_zoom' => $validated['link_zoom']]);
+        } else {
+            // Buat link baru
+            InternalMeetModels::create($validated);
+        }
+
+        return redirect()->back()->with('success', 'Link Zoom berhasil disimpan!');
+    }
+
+    
 
     public function periode($id)
     {

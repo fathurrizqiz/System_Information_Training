@@ -87,6 +87,8 @@ Route::delete('/RencanaDiklat/RPT/PF/detail/delete/{id}', [DiklatInternalControl
 Route::post('/RencanaDiklat/RPT/PF/DetailStore', [DiklatInternalController::class, 'storeDetail'])->name('diklat.detail-internal');
 // aksi detail internal
 Route::get('/RencanaDiklat/Internal/detail/aksi/{id}', [DiklatInternalController::class, 'aksi'])->name('aksi-internal');
+// save link zoom
+Route::post('/RencanaDiklat/Internal/detail/aksi/zoom', [DiklatInternalController::class, 'saveLinkZoom'])->name('save-link-zoom');
 // Program Detail Internal
 Route::get('/RencanaDiklat/Internal/detail/periode/{id}', [DiklatInternalController::class, 'periode'])->name('periode-internal');
 Route::post('/RencanaDiklat/Internal/detail/periode/store', [DiklatInternalController::class, 'storePeriode'])->name('periode-internal.store');
@@ -144,7 +146,11 @@ Route::post('/diklat-eksternal/upload-bukti/{id}', [NonFormalController::class, 
 //jadwal diklat
 Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
 Route::get('/JadwalDiklat/Histori', [JadwalInternalController::class, 'history'])->name('jadwal.history');
+
+// send wa notification
 Route::post('/jadwal-internal/send-wa', [JadwalInternalController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
+Route::post('/jadwal-eksternal/send-wa', [JadwalInternalController::class, 'sendWhatsappEksternal'])->name('jadwal.eksternal.send-wa');
+Route::post('/jadwal-hlc/send-wa', [JadwalInternalController::class, 'sendWhatsappHLC'])->name('jadwal.hlc.send-wa');
 
 // ABSEN
 Route::post('/diklat-eksternal/{id}/hadir',[NonFormalController::class, 'hadir'])->name('diklat.eksternal.absen');

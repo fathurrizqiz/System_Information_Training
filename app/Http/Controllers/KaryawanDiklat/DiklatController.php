@@ -167,10 +167,6 @@ class DiklatController extends Controller
             'penyelenggara' => 'required|string|max:255',
             'jam_diklat' => 'required|integer|min:1',
             'file' => 'required|file|mimes:pdf|max:2048',
-        ], [
-            // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
-            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
-            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ]);
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);

@@ -163,6 +163,39 @@ function bukaDokumentasi() {
 
     router.visit(`/DetailInternal/Dokumentasi/view/${selectedPeriode.value}`);
 }
+
+const LinkZoom = ref('');
+
+const TambahLinkZoom = () => {
+    if (!selectedPeriode.value) {
+        toast.error('Pilih periode terlebih dahulu!');
+        return;
+    }
+
+    if (!LinkZoom.value.trim()) {
+        toast.error('Link Zoom tidak boleh kosong!');
+        return;
+    }
+
+    router.post(
+        '/RencanaDiklat/Internal/detail/aksi/zoom',
+        {
+            periode_id: selectedPeriode.value,
+            link_zoom: LinkZoom.value,
+        },
+        {
+            onSuccess: () => {
+                toast.success('Link Zoom berhasil disimpan!');
+                LinkZoom.value = '';
+            },
+            onError: (errors) => {
+                toast.error(
+                    errors.link_zoom?.[0] || 'Gagal menyimpan Link Zoom.',
+                );
+            },
+        },
+    );
+}
 </script>
 
 <template>
@@ -228,6 +261,30 @@ function bukaDokumentasi() {
                     class="w-32 rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                     placeholder="0"
                 />
+            </div>
+            <div
+                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm flex gap-3"
+            >
+                <h2 class="mb-3 text-lg font-medium text-gray-700">
+                    Link Zoom (Opsional)
+                </h2>
+                <Input
+                    v-model="LinkZoom"
+                    class="w-full rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="https://zoom.us/j/..."
+                />
+                <button
+                    type="button"
+                    @click="TambahLinkZoom"
+                    class="w-42 h-20 rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="0"
+                >
+                    Tambah Link Zoom
+                </button>
+            </div>
+
+            <div class="mb-8 flex justify-end">
+                
             </div>
 
             <div class="mb-8 flex justify-end">

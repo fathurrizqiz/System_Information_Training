@@ -22,7 +22,7 @@ const form = reactive({
     tanggal_selesai: '',
     nama_diklat: '',
     pengajar: '',
-    jam_diklat: '',
+    jam_diklat: 0,
     diklat: '',
     evaluasimateri: '',
     evaluasipengajar: '',
@@ -32,6 +32,12 @@ const form = reactive({
 
 // Fungsi untuk submit form
 function submit() {
+
+    if (form.jam_diklat < 1 || form.jam_diklat > 9) {
+        toast.error('Jam diklat per hari harus antara 1-9 jam.');
+        return;
+    }
+
     router.post(route('diklat.store'), form, {
         onSuccess: () => {
             toast.success('Data Berhasil Disimpan!');
@@ -47,6 +53,8 @@ function submit() {
 
 // fungsi untuk sett tanggal hari ini
 const today = new Date().toISOString().split('T')[0];
+document.getElementById('tanggal_mulai')?.setAttribute('max', today);
+document.getElementById('tanggal_selesai')?.setAttribute('max', today);
 </script>
 
 <template>
@@ -64,11 +72,11 @@ const today = new Date().toISOString().split('T')[0];
                     >Tanggal Mulai</label
                 >
                 <Input
-                    id="tanggal"
+                    id="tanggal_mulai"
                     type="date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.tanggal_mulai"
-                    :min="form.tanggal_mulai || today"
+                    :max="today"
                     @keydown.prevent
                 />
             </div>
@@ -79,11 +87,11 @@ const today = new Date().toISOString().split('T')[0];
                     >Tanggal Selesai</label
                 >
                 <Input
-                    id="tanggal"
+                    id="tanggal_selesai"
                     type="date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     v-model="form.tanggal_selesai"
-                    :min="form.tanggal_mulai || today"
+                    :max="today"
                     @keydown.prevent
                 />
             </div>

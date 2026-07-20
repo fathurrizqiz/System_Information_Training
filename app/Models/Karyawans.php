@@ -21,6 +21,13 @@ class Karyawans extends Model
         'tanggal_mulai_akumulasi_promosi',
     ];
 
+    
+    // MasterDataModels.php
+
+    public function diklatInternalUtama()
+    {
+        return $this->hasMany(PeriodeBagianDetailInternal::class, 'nrp', 'nrp');
+    }
     public function diklat()
     {
         return $this->hasMany(DiklatKaryawan::class, 'karyawan_id', 'id', );

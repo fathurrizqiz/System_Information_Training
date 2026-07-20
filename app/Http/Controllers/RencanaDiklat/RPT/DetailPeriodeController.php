@@ -22,10 +22,15 @@ class DetailPeriodeController extends Controller
             ->get();
 
         // Ambil semua bagian unik
-        $bagians = Karyawans::whereNotNull('bagian')
+        $bagians = Karyawans::select('nama_karyawan', 'nrp', 'bagian')
+            ->whereNotNull('bagian')
+            ->whereNotNull('nama_karyawan')
+            ->whereNotNull('nrp')
             ->distinct()
             ->orderBy('bagian')
-            ->pluck('bagian');
+            ->orderBy('nama_karyawan')
+            ->orderBy('nrp')
+            ->get();
 
 
 
@@ -75,73 +80,68 @@ class DetailPeriodeController extends Controller
 
     public function store(Request $request)
     {
-        // Log::info('STORE PeriodeBagianDetailInternal - Request masuk', $request->all());
-
         $validated = $request->validate([
-            'bagian' => 'required|array',
+            'bagian' => 'nullable|array',
             'bagian.*' => 'string',
+
+            'nama_karyawan' => 'nullable|array',
+            'nama_karyawan.*' => 'string',
+
             'detail_program_id' => 'required|integer',
-            'periode_id' => 'required|integer'
+            'periode_id' => 'required|integer',
         ]);
 
-        Log::info('Data tervalidasi', $validated);
+        $bagianDipilih = $validated['bagian'] ?? [];
+        $namaDipilih = $validated['nama_karyawan'] ?? [];
 
-        $bagianDipilih = $validated['bagian'];
-
-        $bagianSudahAda = PeriodeBagianDetailInternal::where('detail_program_id', $request->detail_program_id)
-            ->whereIn('bagian', $bagianDipilih)
-            ->distinct()
-            ->pluck('bagian')
-            ->toArray();
-
-        // 2. Jika ada bagian yang duplikat, kembalikan error ke UX
-        if (!empty($bagianSudahAda)) {
-            // Menggabungkan nama bagian yang duplikat untuk pesan error
-            $namaBagian = implode(', ', $bagianSudahAda);
+        if (empty($bagianDipilih) && empty($namaDipilih)) {
             return back()->withErrors([
-                'bagian' => "Bagian berikut sudah terdaftar di program ini: $namaBagian"
+                'bagian' => 'Pilih minimal satu bagian atau satu karyawan.'
             ]);
         }
 
-        $karyawan = Karyawans::whereIn('bagian', $bagianDipilih)->get();
-
-        Log::info('Query karyawan', [
-            'bagianDipilih' => $bagianDipilih,
-            'jumlah_karyawan' => $karyawan->count()
-        ]);
+        // Ambil data karyawan berdasarkan bagian ATAU nama
+        $karyawan = Karyawans::query()
+            ->when(!empty($bagianDipilih), function ($q) use ($bagianDipilih) {
+                $q->whereIn('bagian', $bagianDipilih);
+            })
+            ->when(!empty($namaDipilih), function ($q) use ($namaDipilih) {
+                $q->orWhereIn('nama_karyawan', $namaDipilih);
+            })
+            ->get()
+            ->unique('nrp')
+            ->values();
 
         foreach ($karyawan as $k) {
-            try {
-                $data = PeriodeBagianDetailInternal::create([
-                    'detail_program_id' => $request->detail_program_id,
-                    'periode_id' => $request->periode_id,
-                    'nama_karyawan' => $k->nama_karyawan,
-                    'tmt' => $k->tmt,
-                    'nrp' => $k->nrp,
-                    'bagian' => $k->bagian,
-                    'unit_kerja' => $k->unit_kerja,
-                    'posisi_jabatan' => $k->posisi_jabatan,
-                    'klinis_non_klinis' => $k->klinis_non_klinis,
-                    'jenis_kelamin' => $k->jenis_kelamin,
-                ]);
 
-                Log::info('Insert berhasil', [
-                    'nrp' => $k->nrp,
-                    'id' => $data->id ?? null
-                ]);
+            // Cek apakah sudah pernah dimasukkan
+            $sudahAda = PeriodeBagianDetailInternal::where([
+                'detail_program_id' => $validated['detail_program_id'],
+                'periode_id' => $validated['periode_id'],
+                'nrp' => $k->nrp,
+            ])->exists();
 
-            } catch (\Exception $e) {
-                Log::error('Insert gagal', [
-                    'nrp' => $k->nrp,
-                    'error' => $e->getMessage()
-                ]);
+            if ($sudahAda) {
+                continue;
             }
+
+            PeriodeBagianDetailInternal::create([
+                'detail_program_id' => $validated['detail_program_id'],
+                'periode_id' => $validated['periode_id'],
+                'nama_karyawan' => $k->nama_karyawan,
+                'tmt' => $k->tmt,
+                'nrp' => $k->nrp,
+                'bagian' => $k->bagian,
+                'unit_kerja' => $k->unit_kerja,
+                'posisi_jabatan' => $k->posisi_jabatan,
+                'klinis_non_klinis' => $k->klinis_non_klinis,
+                'jenis_kelamin' => $k->jenis_kelamin,
+            ]);
         }
 
-        // Log::info('STORE selesai');
-
-        return redirect()->route('aksi-internal', ['id' => $validated['detail_program_id']])
-                 ->with('success', 'Data berhasil disimpan');
+        return redirect()
+            ->route('aksi-internal', ['id' => $validated['detail_program_id']])
+            ->with('success', 'Data berhasil disimpan');
     }
 
     public function bulkDelete(Request $request)
