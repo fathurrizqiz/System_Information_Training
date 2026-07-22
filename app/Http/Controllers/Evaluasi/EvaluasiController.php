@@ -45,131 +45,140 @@ class EvaluasiController extends Controller
     ]);
 }
     public function show($id)
-    {
-        set_time_limit(0);
-        $detail = DetailInternal::with('evaluasi')->findOrFail($id);
-        $evaluasis = $detail->evaluasi;
+{
+    set_time_limit(0);
+    $detail = DetailInternal::with('evaluasi')->findOrFail($id);
+    $evaluasis = $detail->evaluasi;
 
-        // 1. Inisialisasi penghitung terpisah
-        $counts = [
-            'materi' => ['positive' => 0, 'neutral' => 0, 'negative' => 0],
-            'pemateri' => ['positive' => 0, 'neutral' => 0, 'negative' => 0],
-        ];
+    $counts = [
+        'materi'   => ['positive' => 0, 'neutral' => 0, 'negative' => 0],
+        'pemateri' => ['positive' => 0, 'neutral' => 0, 'negative' => 0],
+    ];
 
-        $comments = [];
+    $comments = [];
 
-        foreach ($evaluasis as $ev) {
-            // Panggil analyzeSentiment (asumsi mengembalikan array sentiment untuk kedua aspek)
-            $res = $this->analyzeSentiment($ev->evaluasimateri, $ev->evaluasipengajar);
+    foreach ($evaluasis as $ev) {
+        // 1 komentar bebas -> API deteksi aspek otomatis + sentimen per aspek
+        $res = $this->analyzeSentiment($ev->evaluasimateri);
 
-            if (!$res)
-                continue;
+        if (!$res)
+            continue;
 
-            // 2. Hitung Sentiment Materi
-            $materiLabel = $res['materi']['label'] ?? null;
-            if ($materiLabel === 'positive')
-                $counts['materi']['positive']++;
-            elseif ($materiLabel === 'neutral')
-                $counts['materi']['neutral']++;
-            elseif ($materiLabel === 'negative')
-                $counts['materi']['negative']++;
+        // 2. Hitung Sentiment Materi
+        $materiLabel = $res['materi']['label'] ?? null;
+        if ($materiLabel === 'positive')
+            $counts['materi']['positive']++;
+        elseif ($materiLabel === 'neutral')
+            $counts['materi']['neutral']++;
+        elseif ($materiLabel === 'negative')
+            $counts['materi']['negative']++;
 
-            // 3. Hitung Sentiment Pemateri
-            $pemateriLabel = $res['pemateri']['label'] ?? null;
-            if ($pemateriLabel === 'positive')
-                $counts['pemateri']['positive']++;
-            elseif ($pemateriLabel === 'neutral')
-                $counts['pemateri']['neutral']++;
-            elseif ($pemateriLabel === 'negative')
-                $counts['pemateri']['negative']++;
+        // 3. Hitung Sentiment Pemateri
+        $pemateriLabel = $res['pemateri']['label'] ?? null;
+        if ($pemateriLabel === 'positive')
+            $counts['pemateri']['positive']++;
+        elseif ($pemateriLabel === 'neutral')
+            $counts['pemateri']['neutral']++;
+        elseif ($pemateriLabel === 'negative')
+            $counts['pemateri']['negative']++;
 
-            // 4. Simpan Komentar untuk ditampilkan di list
-            if (!empty($ev->evaluasimateri)) {
+        // 4. Simpan komentar untuk list -> 1 baris per aspek yang TERDETEKSI
+        //    (kalau materi & pemateri sama-sama terdeteksi, komentar ini
+        //     akan muncul 2x di list, masing-masing dengan aspek berbeda)
+        if (!empty($ev->evaluasimateri)) {
+            if ($materiLabel) {
                 $comments[] = [
                     'text' => $ev->evaluasimateri,
                     'aspect' => 'materi',
                     'sentiment' => $this->mapSentiment($materiLabel)
                 ];
             }
-            if (!empty($ev->evaluasipengajar)) {
+            if ($pemateriLabel) {
                 $comments[] = [
-                    'text' => $ev->evaluasipengajar,
+                    'text' => $ev->evaluasimateri,
                     'aspect' => 'pemateri',
                     'sentiment' => $this->mapSentiment($pemateriLabel)
                 ];
             }
         }
+    }
 
-        return Inertia::render('Evaluasi/detail', [
-            'detail' => $detail,
-            'comments' => $comments,
-            'sentiment' => $counts // Sekarang datanya dinamis!
+    return Inertia::render('Evaluasi/detail', [
+        'detail' => $detail,
+        'comments' => $comments,
+        'sentiment' => $counts
+    ]);
+}
+
+function mapSentiment($label)
+{
+    return match ($label) {
+        'positive' => 'positive',
+        'neutral' => 'neutral',
+        'negative' => 'negative',
+        default => 'negative',
+    };
+}
+
+// Helper untuk AI — sekarang kirim 1 field "komentar" saja
+private function analyzeSentiment($komentar = null)
+{
+    if (empty(trim((string) $komentar))) {
+        return null;
+    }
+
+    try {
+        $response = Http::timeout(180)->post('http://127.0.0.1:5000/predict', [
+            'komentar' => $komentar,
         ]);
-    }
 
-    // Mapping 
-    function mapSentiment($label)
-    {
-        return match ($label) {
-            'positive' => 'positive',
-            'neutral' => 'neutral',
-            'negative' => 'negative',
-            default => 'negative',
-        };
-    }
+        if ($response->successful()) {
+            return $response->json();
+        }
 
-    // Helper untuk AI
+        \Log::error('AI Error: response not successful', [
+            'status' => $response->status(),
+            'body'   => $response->body(),
+        ]);
+        return null;
+    } catch (\Exception $e) {
+        \Log::error('AI Error: ' . $e->getMessage());
+        return null;
+    }
+}
+
+    // // AI Hunging Face
     // private function analyzeSentiment($materi = null, $pemateri = null)
     // {
-    //     try {
-    //         $response = Http::timeout(1000)->post('http://127.0.0.1:5000/predict', [
-    //             'materi' => $materi,
-    //             'pemateri' => $pemateri
-    //         ]);
+    //     // Jika keduanya kosong, tidak perlu call API
+    //     if (empty($materi) && empty($pemateri)) {
+    //         return null;
+    //     }
 
-    //         if ($response->successful()) {
-    //             return $response->json();
+    //     try {
+    //         $hfSpaceUrl = env('AI_SERVICE_URL', 'https://vampire123456-indobert-api-service.hf.space');
+
+    //         // Timeout 30 detik.
+    //         $response = Http::timeout(30)
+    //             ->withOptions([
+    //                 'verify' => false //SSL sementara
+    //             ])
+    //             ->post($hfSpaceUrl . '/predict', [
+    //                 'materi' => $materi,
+    //                 'pemateri' => $pemateri
+    //             ]);
+
+    //         if ($response->failed()) {
+    //             Log::error('AI Service Failed', ['status' => $response->status(), 'body' => $response->body()]);
+    //             return null; 
     //         }
 
-    //         return null;
+    //         return $response->json();
+
     //     } catch (\Exception $e) {
-    //         \Log::error('AI Error: ' . $e->getMessage());
+    //         Log::error('AI Connection Error', ['message' => $e->getMessage()]);
     //         return null;
     //     }
     // }
-
-    // AI Hunging Face
-    private function analyzeSentiment($materi = null, $pemateri = null)
-    {
-        // Jika keduanya kosong, tidak perlu call API
-        if (empty($materi) && empty($pemateri)) {
-            return null;
-        }
-
-        try {
-            $hfSpaceUrl = env('AI_SERVICE_URL', 'https://vampire123456-indobert-api-service.hf.space');
-
-            // Timeout 30 detik.
-            $response = Http::timeout(30)
-                ->withOptions([
-                    'verify' => false //SSL sementara
-                ])
-                ->post($hfSpaceUrl . '/predict', [
-                    'materi' => $materi,
-                    'pemateri' => $pemateri
-                ]);
-
-            if ($response->failed()) {
-                Log::error('AI Service Failed', ['status' => $response->status(), 'body' => $response->body()]);
-                return null; 
-            }
-
-            return $response->json();
-
-        } catch (\Exception $e) {
-            Log::error('AI Connection Error', ['message' => $e->getMessage()]);
-            return null;
-        }
-    }
 
 }
