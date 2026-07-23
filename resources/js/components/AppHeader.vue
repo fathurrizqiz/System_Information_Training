@@ -62,7 +62,7 @@ const activeItemStyles = computed(
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Eichar-Diklat',
         href: dashboard(),
         icon: LayoutGrid,
     },

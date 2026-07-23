@@ -13,10 +13,10 @@ import { Head, Link } from '@inertiajs/vue3';
             <!-- Header Section -->
             <div class="mb-8">
                 <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    Pengaturan WhatsApp
+                    Pengaturan
                 </h1>
                 <p class="text-slate-500 dark:text-slate-400 mt-2">
-                    Kelola integrasi notifikasi, nomor penerima, dan template pesan Anda dalam satu tempat.
+                    Kelola integrasi notifikasi, data penerima, template pesan dan pengaturan lainnya dalam satu tempat.
                 </p>
             </div>
 
@@ -33,7 +33,7 @@ import { Head, Link } from '@inertiajs/vue3';
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-lg text-slate-800 dark:text-white">Daftar Nomor HP</h3>
+                            <h3 class="font-bold text-lg text-slate-800 dark:text-white">Daftar Data Pegawai</h3>
                             <p class="text-sm text-slate-500 mt-1">Kelola kontak karyawan yang akan menerima notifikasi otomatis.</p>
                         </div>
                         <div class="pt-4 flex items-center text-blue-600 font-bold text-xs uppercase tracking-widest">
@@ -53,7 +53,7 @@ import { Head, Link } from '@inertiajs/vue3';
                         </div>
                         <div>
                             <h3 class="font-bold text-lg text-slate-800 dark:text-white">Template Pesan</h3>
-                            <p class="text-sm text-slate-500 mt-1">Atur kata-kata notifikasi menggunakan placeholder dinamis.</p>
+                            <p class="text-sm text-slate-500 mt-1">Atur kata-kata notifikasi dengan lebih fleksibel.</p>
                         </div>
                         <div class="pt-4 flex items-center text-green-600 font-bold text-xs uppercase tracking-widest">
                             Atur Template <svg class="w-4 h-4 ml-1 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7l5 5m0 0l-5 5m5-5H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>

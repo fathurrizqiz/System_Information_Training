@@ -102,7 +102,7 @@ function goTemplate() {
                 @click="goTemplate"
                 class="m-2 rounded-lg bg-blue-500 px-4 py-2 font-bold text-white transition hover:bg-blue-600"
             >
-                Template Pesan WA
+                Template Pesan
             </button>
             <div class="flex flex-col gap-6 lg:flex-row">
                 <!-- KOLOM KIRI: TABEL DAFTAR NOMOR -->
@@ -113,7 +113,7 @@ function goTemplate() {
                         class="flex items-center justify-between border-b border-gray-50 bg-gray-50/50 p-4"
                     >
                         <h3 class="font-semibold text-gray-700">
-                            Daftar Nomor Terdaftar
+                            Daftar Data Terdaftar
                         </h3>
                         <span
                             class="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-bold text-gray-700"

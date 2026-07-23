@@ -62,7 +62,7 @@ console.log('ALL PROPS:', JSON.stringify(page.props));
                 <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4 lg:hidden">
                     <SidebarTrigger class="-ml-1" />
                     <Separator orientation="vertical" class="mr-2 h-4" />
-                    <span class="text-sm font-medium">Dashboard</span>
+                    <span class="text-sm font-medium">Eichar-Diklat</span>
                 </header>
                 <slot />
             </main>
