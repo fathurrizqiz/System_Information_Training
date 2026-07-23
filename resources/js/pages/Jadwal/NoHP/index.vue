@@ -59,7 +59,7 @@ const selectKaryawan = (user: KaryawanAutocomplete): void => {
 const submit = (): void => {
     form.post(route('nohp.store'), {
         onSuccess: () => {
-            toast.success('Nomor berhasil ditambahkan');
+            toast.success('Data berhasil ditambahkan');
             form.reset();
             searchQuery.value = '';
         },
@@ -73,7 +73,7 @@ const hapusData = (id: number): void => {
     if (confirm('Hapus nomor ini?')) {
         router.delete(route('nohp.destroy', id),{
             onSuccess: () => {
-                toast.success('Nomor berhasil dihapus');
+                toast.success('Data berhasil dihapus');
             }
         });
     }
@@ -86,11 +86,11 @@ function goTemplate() {
 </script>
 
 <template>
-    <Head title="Manajemen Nomor WhatsApp" />
+    <Head title="Manajemen Data Notifikasi" />
 
     <AppLayout>
     <div class="p-6 max-w-7xl mx-auto">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800 tracking-tight">Manajemen Nomor WhatsApp</h2>
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 tracking-tight">Manajemen Data Notifikasi</h2>
 
         <button @click="goTemplate" class="bg-blue-500 m-2 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">
             Template Pesan WA
