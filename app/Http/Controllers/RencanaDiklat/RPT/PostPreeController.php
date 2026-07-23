@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\RencanaDiklat\RPT;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\AnalyzeSentiment;
 use App\Jobs\GenerateCertificateJob;
 use App\Models\AksiDetailInternal;
 use App\Models\DetailInternal;
@@ -26,6 +27,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Log;
 use Str;
+
 
 class PostPreeController extends Controller
 {
@@ -543,22 +545,24 @@ class PostPreeController extends Controller
 
 
 
+    
+
     public function submitEvaluasi(Request $request)
-{
-    $request->validate([
-        'detail_id' => 'required|exists:detail_internal,id',
-        'evaluasimateri' => 'required|string',
-        'evaluasipengajar' => 'required|string',
-    ]);
+    {
+        $request->validate([
+            'detail_id' => 'required|exists:detail_internal,id',
+            'evaluasimateri' => 'required|string',
+        ]);
 
-    EvaluasiDetailInternal::create([
-        'detail_id' => $request->detail_id,
-        'evaluasimateri' => $request->evaluasimateri,
-        'evaluasipengajar' => $request->evaluasipengajar
-    ]);
+        $evaluasi = EvaluasiDetailInternal::create([
+            'detail_id' => $request->detail_id,
+            'evaluasimateri' => $request->evaluasimateri,
+        ]);
 
-    return back()->with('success', 'Evaluasi berhasil disimpan');
-}
+        AnalyzeSentiment::dispatch($evaluasi);
+
+        return back()->with('success', 'Evaluasi berhasil disimpan');
+    }
 
 
 

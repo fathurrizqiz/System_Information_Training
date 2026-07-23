@@ -111,8 +111,9 @@ const props = defineProps<{
                                             v-if="detail.summary_sentiment?.is_evaluated" 
                                             class="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                                         >
-                                            Dievaluasi ({{ detail.summary_sentiment.total_comments }})
+                                            Dievaluasi 
                                         </span>
+                                        <!-- ({{ detail.summary_sentiment.total_comments }}) -->
                                         <span 
                                             v-else 
                                             class="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
@@ -130,32 +131,32 @@ const props = defineProps<{
                                     >
                                         <div class="mb-2 flex items-center justify-between">
                                             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
-                                                Analisis Sentimen
+                                                Lihat Lebih Detail
                                             </span>
                                             <svg class="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                             </svg>
                                         </div>
                                         
-                                        <div class="flex items-center justify-between text-sm font-medium">
-                                            <!-- Positif -->
+                                        <!-- <div class="flex items-center justify-between text-sm font-medium">
+                                            
                                             <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 <span>{{ detail.summary_sentiment.positive }}</span>
                                             </div>
                                             
-                                            <!-- Netral -->
+                                            
                                             <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 <span>{{ detail.summary_sentiment.neutral }}</span>
                                             </div>
 
-                                            <!-- Negatif -->
+                                            
                                             <div class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 <span>{{ detail.summary_sentiment.negative }}</span>
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                             </div>

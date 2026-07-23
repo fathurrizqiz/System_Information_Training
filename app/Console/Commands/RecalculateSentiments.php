@@ -9,81 +9,89 @@ use Illuminate\Support\Facades\Log;
 
 class RecalculateSentiments extends Command
 {
-
     protected $signature = 'sentiment:recalculate';
-    protected $description = 'Menghitung ulang sentimen untuk data evaluasi lama yang belum diproses';
+    protected $description = 'Menghitung ulang sentimen evaluasi yang belum diproses';
 
     public function handle()
     {
-        $this->info('Mencari data evaluasi yang belum memiliki hasil sentimen...');
+        $this->info('Mencari data yang belum memiliki sentimen...');
 
-        // Hanya ambil data yang teksnya ada tapi sentimennya masih kosong
-        $evaluasis = EvaluasiDetailInternal::whereNull('sentimen_materi')
-            ->orWhereNull('sentimen_pengajar')
-            ->get();
+        $evaluasis = EvaluasiDetailInternal::whereNull('sentimen_materi')->get();
 
-        $total = $evaluasis->count();
-
-        if ($total === 0) {
-            $this->info('Semua data sudah memiliki hasil sentimen. Tidak ada yang perlu diproses.');
-            return;
+        if ($evaluasis->isEmpty()) {
+            $this->info('Tidak ada data yang perlu diproses.');
+            return Command::SUCCESS;
         }
 
-        $this->info("Ditemukan {$total} data. Memulai proses...");
-        $count = 0;
+        $this->info("Ditemukan {$evaluasis->count()} data.");
 
-        foreach ($evaluasis as $ev) {
-            $count++;
-            $this->line("Memproses data ke-{$count}/{$total} (ID: {$ev->id})");
+        foreach ($evaluasis as $index => $evaluasi) {
 
-            // Panggil fungsi analisis (sama seperti di controller Anda)
-            $result = $this->analyzeSentiment($ev->evaluasimateri, $ev->evaluasipengajar);
+            $this->line(
+                sprintf(
+                    '[%d/%d] Memproses ID %d',
+                    $index + 1,
+                    $evaluasis->count(),
+                    $evaluasi->id
+                )
+            );
+
+            $result = $this->analyzeSentiment($evaluasi->evaluasimateri);
 
             if ($result) {
-                $ev->update([
-                    'sentimen_materi' => $result['materi']['label'] ?? null,
-                    'sentimen_pengajar' => $result['pemateri']['label'] ?? null,
+
+                $evaluasi->update([
+                    'sentimen_materi' => $result['label'] ?? null,
                 ]);
-                $this->info("  -> Berhasil update: Materi({$result['materi']['label']}), Pengajar({$result['pemateri']['label']})");
+
+                $this->info("✔ Sentimen: {$result['label']}");
+
             } else {
-                $this->warn("  -> Gagal menganalisis atau teks kosong.");
+
+                $this->warn('✖ Gagal menganalisis.');
+
             }
 
-            // PENTING: Beri jeda 1 detik agar tidak membebani server AI
+            // Opsional, jika AI cukup berat
             sleep(1);
         }
 
-        $this->info('Proses selesai! Silakan cek halaman Evaluasi.');
+        $this->info('Selesai.');
+
+        return Command::SUCCESS;
     }
 
-    // Salinan fungsi analyzeSentiment dari Controller Anda
-    private function analyzeSentiment($materi = null, $pemateri = null)
+    private function analyzeSentiment($komentar = null)
     {
-        if (empty($materi) && empty($pemateri)) {
+        if (empty(trim((string) $komentar))) {
             return null;
         }
 
         try {
-            $hfSpaceUrl = env('AI_SERVICE_URL', 'https://vampire123456-indobert-api-service.hf.space');
 
-            $response = Http::timeout(30)
-                ->withOptions(['verify' => false])
-                ->post($hfSpaceUrl . '/predict', [
-                    'materi' => $materi,
-                    'pemateri' => $pemateri
+            $response = Http::timeout(180)
+                ->post(env('AI_SERVICE_URL') . '/predict', [
+                    'komentar' => $komentar,
                 ]);
 
-            if ($response->failed()) {
-                Log::error('AI Service Failed', ['status' => $response->status()]);
-                return null;
+            if ($response->successful()) {
+                return $response->json();
             }
 
-            return $response->json();
+            Log::error('AI Error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
 
-        } catch (\Exception $e) {
-            Log::error('AI Connection Error', ['message' => $e->getMessage()]);
+            return null;
+
+        } catch (\Throwable $e) {
+
+            Log::error('AI Connection Error', [
+                'message' => $e->getMessage(),
+            ]);
+
             return null;
         }
     }
-
 }

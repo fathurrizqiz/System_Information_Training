@@ -15,35 +15,35 @@ use Inertia\Inertia;
 class EvaluasiController extends Controller
 {
     public function index()
-{
-    // 1. Evaluasi Karyawan (Diklat Eksternal)
-    // Catatan: Pastikan tabel diklat_karyawans sudah punya kolom sentimen_materi/pengajar 
-    // agar bisa menggunakan cara yang ringan seperti Internal.
-    $evaluasi1 = DiklatKaryawan::all()->map(function ($item) {
-        // Jika belum pakai kolom sentimen di DB, logic AI lama tetap di sini.
-        // Jika sudah pakai kolom sentimen, gunakan accessor di model DiklatKaryawan juga.
-        return $item; 
-    });
+    {
+        // 1. Evaluasi Karyawan (Diklat Eksternal)
+        // Catatan: Pastikan tabel diklat_karyawans sudah punya kolom sentimen_materi/pengajar 
+        // agar bisa menggunakan cara yang ringan seperti Internal.
+        $evaluasi1 = DiklatKaryawan::all()->map(function ($item) {
+            // Jika belum pakai kolom sentimen di DB, logic AI lama tetap di sini.
+            // Jika sudah pakai kolom sentimen, gunakan accessor di model DiklatKaryawan juga.
+            return $item;
+        });
 
-    // 2. Evaluasi Internal (Pendidikan Formal)
-    // PERBAIKAN: Gunakan PendidikanFormalModels sebagai root, bukan DetailInternal
-    $evaluasi2 = PendidikanFormalModels::with([
-        'details' => function ($q) {
-            // PERBAIKAN: Gunakan 'evaluasis' (jamak) sesuai nama function di model DetailInternal
-            $q->with('evaluasi:id,detail_id,sentimen_materi,sentimen_pengajar');
-            
-            // Opsional: Pilih kolom detail yang diperlukan saja agar lebih ringan
-            $q->select('id', 'program_id', 'nama_diklat'); 
-        }
-    ])
-    ->select('id', 'nama_program') // Pilih kolom program yang diperlukan
-    ->get();
+        // 2. Evaluasi Internal (Pendidikan Formal)
+        // PERBAIKAN: Gunakan PendidikanFormalModels sebagai root, bukan DetailInternal
+        $evaluasi2 = PendidikanFormalModels::with([
+            'details' => function ($q) {
+                // PERBAIKAN: Gunakan 'evaluasis' (jamak) sesuai nama function di model DetailInternal
+                $q->with('evaluasi:id,detail_id,sentimen_materi,sentimen_pengajar');
 
-    return Inertia::render('Evaluasi/evaluasi', [
-        'evaluasiKaryawan' => $evaluasi1,
-        'evaluasiInternal' => $evaluasi2
-    ]);
-}
+                // Opsional: Pilih kolom detail yang diperlukan saja agar lebih ringan
+                $q->select('id', 'program_id', 'nama_diklat');
+            }
+        ])
+            ->select('id', 'nama_program') // Pilih kolom program yang diperlukan
+            ->get();
+
+        return Inertia::render('Evaluasi/evaluasi', [
+            'evaluasiKaryawan' => $evaluasi1,
+            'evaluasiInternal' => $evaluasi2
+        ]);
+    }
     public function show($id)
 {
     set_time_limit(0);
@@ -128,21 +128,34 @@ private function analyzeSentiment($komentar = null)
     }
 
     try {
-        $response = Http::timeout(180)->post('http://127.0.0.1:5000/predict', [
-            'komentar' => $komentar,
-        ]);
+
+        $url = rtrim(env('AI_SERVICE_URL'), '/') . '/predict';
+
+        $response = Http::timeout(180)
+            ->withoutVerifying() // opsional, hanya jika ada masalah SSL
+            ->post($url, [
+                'komentar' => $komentar,
+            ]);
 
         if ($response->successful()) {
             return $response->json();
         }
 
-        \Log::error('AI Error: response not successful', [
+        \Log::error('AI Error', [
+            'url' => $url,
             'status' => $response->status(),
-            'body'   => $response->body(),
+            'body' => $response->body(),
         ]);
+
         return null;
-    } catch (\Exception $e) {
-        \Log::error('AI Error: ' . $e->getMessage());
+
+    } catch (\Throwable $e) {
+
+        \Log::error('AI Exception', [
+            'url' => $url ?? null,
+            'message' => $e->getMessage(),
+        ]);
+
         return null;
     }
 }
