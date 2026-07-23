@@ -59,11 +59,6 @@ const props = defineProps<{
 const activeTab = ref('internal');
 const search = ref(props.filters.search || '');
 
-const menuItems = [
-    { title: 'Internal', href: '/RencanaDiklat/RPT/PF' },
-    { title: 'Eksternal', href: '/RencanaDiklat/RPT/PN' },
-    { title: 'HLC', href: '/HLC/Home/manajemen' },
-];
 
 // --- Functions ---
 const formatDate = (date: string) => {
