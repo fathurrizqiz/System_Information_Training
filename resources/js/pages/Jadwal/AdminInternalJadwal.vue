@@ -197,46 +197,46 @@ const isPelatihanAktif = (tanggalMulai: string, tanggalSelesai: string) => {
 };
 
 // konfirmasi hadir HLC
-const konfirmasiHLC = (id: number, status: string) => {
-    const action = status === 'Hadir' ? 'Hadir' : 'tolak';
-    if (
-        confirm(
-            `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam HLC ini?`,
-        )
-    ) {
-        router.post(
-            route('diklat.hlc.admin.konfirmasi-hadir', id),
-            {
-                status: status,
-            },
-            {
-                onSuccess: () => {
-                    toast.success(`Anda telah ${action} keikutsertaan Anda!`);
-                },
-            },
-        );
-    }
-};
-const konfirmasiEksternal = (id: number, status: string) => {
-    const action = status === 'Hadir' ? 'Hadir' : 'tolak';
-    if (
-        confirm(
-            `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam Eksternal ini?`,
-        )
-    ) {
-        router.post(
-            route('diklat.eksternal.admin.konfirmasi-hadir', id),
-            {
-                status: status,
-            },
-            {
-                onSuccess: () => {
-                    toast.success(`Anda telah ${action} keikutsertaan Anda!`);
-                },
-            },
-        );
-    }
-};
+// const konfirmasiHLC = (id: number, status: string) => {
+//     const action = status === 'Hadir' ? 'Hadir' : 'tolak';
+//     if (
+//         confirm(
+//             `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam HLC ini?`,
+//         )
+//     ) {
+//         router.post(
+//             route('diklat.hlc.admin.konfirmasi-hadir', id),
+//             {
+//                 status: status,
+//             },
+//             {
+//                 onSuccess: () => {
+//                     toast.success(`Anda telah ${action} keikutsertaan Anda!`);
+//                 },
+//             },
+//         );
+//     }
+// };
+// const konfirmasiEksternal = (id: number, status: string) => {
+//     const action = status === 'Hadir' ? 'Hadir' : 'tolak';
+//     if (
+//         confirm(
+//             `Apakah Anda yakin ingin ${action} keikutsertaan Anda dalam Eksternal ini?`,
+//         )
+//     ) {
+//         router.post(
+//             route('diklat.eksternal.admin.konfirmasi-hadir', id),
+//             {
+//                 status: status,
+//             },
+//             {
+//                 onSuccess: () => {
+//                     toast.success(`Anda telah ${action} keikutsertaan Anda!`);
+//                 },
+//             },
+//         );
+//     }
+// };
 
 function history() {
     router.get('/JadwalDiklat/Histori');
@@ -629,7 +629,7 @@ const absenHariIniHLC = (hlc: any) => {
                                                 />
                                                 <path d="M8 6v8" />
                                             </svg>
-                                            Umumkan WA
+                                            Kirim Notifikasi
                                         </button>
                                     </td>
                                 </tr>

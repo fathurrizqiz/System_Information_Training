@@ -154,13 +154,13 @@ class JadwalInternalController extends Controller
     // Internal
     public function sendWhatsappNotification(Request $request)
     {
-        Log::info("=== MULAI KIRIM WHATSAPP ===");
+        // Log::info("=== MULAI KIRIM WHATSAPP ===");
 
         $idJadwal = $request->id;
         $slugDicari = $request->template_slug;
 
-        Log::info("ID Jadwal: {$idJadwal}");
-        Log::info("Slug Template: {$slugDicari}");
+        // Log::info("ID Jadwal: {$idJadwal}");
+        // Log::info("Slug Template: {$slugDicari}");
 
         $jadwal = PeriodeUtama::with('detail')->findOrFail($idJadwal);
 
@@ -168,7 +168,7 @@ class JadwalInternalController extends Controller
             ->pluck('nrp')
             ->toArray();
 
-        Log::info("Jumlah NRP ditemukan: " . count($daftarNrp));
+        // Log::info("Jumlah NRP ditemukan: " . count($daftarNrp));
 
         if (empty($daftarNrp)) {
             Log::warning("Tidak ada peserta");
@@ -177,7 +177,7 @@ class JadwalInternalController extends Controller
 
         $penerima = NoHpKaryawan::whereIn('nrp', $daftarNrp)->get();
 
-        Log::info("Jumlah nomor WA: " . $penerima->count());
+        // Log::info("Jumlah nomor WA: " . $penerima->count());
 
         if ($penerima->isEmpty()) {
             Log::warning("Nomor WA tidak ditemukan");
@@ -195,9 +195,9 @@ class JadwalInternalController extends Controller
 
         foreach ($penerima as $karyawan) {
 
-            Log::info("=================================");
-            Log::info("Mengirim ke {$karyawan->nama}");
-            Log::info("Nomor: {$karyawan->email}");
+            // Log::info("=================================");
+            // Log::info("Mengirim ke {$karyawan->nama}");
+            // Log::info("Nomor: {$karyawan->email}");
 
             $pesanFinal = str_replace(
                 ['{nama}', '{judul}', '{tanggal}', '{lokasi}'],
@@ -210,8 +210,8 @@ class JadwalInternalController extends Controller
                 $template->pesan
             );
 
-            Log::info("Isi Pesan:");
-            Log::info($pesanFinal);
+            // Log::info("Isi Pesan:");
+            // Log::info($pesanFinal);
 
             try {
 
@@ -228,7 +228,7 @@ class JadwalInternalController extends Controller
 
                 // Log::info("HTTP Status : " . $response->status());
                 // Log::info("Response API : " . $response->body());
-                
+
                 $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
                     ->post('https://api.resend.com/emails', [
                         'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
@@ -237,8 +237,8 @@ class JadwalInternalController extends Controller
                         'html' => nl2br($pesanFinal),
                     ]);
 
-                Log::info("HTTP Status : " . $response->status());
-                Log::info("Response API : " . $response->body());
+                // Log::info("HTTP Status : " . $response->status());
+                // Log::info("Response API : " . $response->body());
 
 
                 // WaLog::create([
@@ -249,19 +249,19 @@ class JadwalInternalController extends Controller
                 //     'response_api' => $response->body(),
                 // ]);
 
-                Log::info("Berhasil simpan log");
+                // Log::info("Berhasil simpan log");
 
             } catch (\Throwable $e) {
 
-                Log::error("EXCEPTION");
-                Log::error($e->getMessage());
-                Log::error($e->getFile());
-                Log::error($e->getLine());
+                // Log::error("EXCEPTION");
+                // Log::error($e->getMessage());
+                // Log::error($e->getFile());
+                // Log::error($e->getLine());
 
             }
         }
 
-        Log::info("=== SELESAI ===");
+        // Log::info("=== SELESAI ===");
 
         return back()->with('success', 'Selesai');
     }
@@ -269,13 +269,13 @@ class JadwalInternalController extends Controller
     // HLC send Whattsapp
     public function sendWhatsappHLC(Request $request)
     {
-        Log::info("=== MULAI KIRIM WHATSAPP ===");
+        // Log::info("=== MULAI KIRIM WHATSAPP ===");
 
         $idJadwal = $request->id;
         $slugDicari = $request->template_slug;
 
-        Log::info("ID Jadwal: {$idJadwal}");
-        Log::info("Slug Template: {$slugDicari}");
+        // Log::info("ID Jadwal: {$idJadwal}");
+        // Log::info("Slug Template: {$slugDicari}");
 
         $jadwal = HLCManajement::select('id', 'nama_diklat', 'nrp', 'tanggal_mulai')->findOrFail($idJadwal);
 
@@ -284,7 +284,7 @@ class JadwalInternalController extends Controller
 
         $penerima = NoHpKaryawan::whereIn('nrp', $daftarNrp)->get();
 
-        Log::info("Jumlah nomor WA: " . $penerima->count());
+        // Log::info("Jumlah nomor WA: " . $penerima->count());
 
         if ($penerima->isEmpty()) {
             Log::warning("Nomor WA tidak ditemukan");
@@ -302,9 +302,9 @@ class JadwalInternalController extends Controller
 
         foreach ($penerima as $karyawan) {
 
-            Log::info("=================================");
-            Log::info("Mengirim ke {$karyawan->nama}");
-            Log::info("Nomor: {$karyawan->email}");
+            // Log::info("=================================");
+            // Log::info("Mengirim ke {$karyawan->nama}");
+            // Log::info("Nomor: {$karyawan->email}");
 
             $pesanFinal = str_replace(
                 ['{nama}', '{judul}', '{tanggal}', '{lokasi}'],
@@ -317,8 +317,8 @@ class JadwalInternalController extends Controller
                 $template->pesan
             );
 
-            Log::info("Isi Pesan:");
-            Log::info($pesanFinal);
+            // Log::info("Isi Pesan:");
+            // Log::info($pesanFinal);
 
             try {
 
@@ -330,8 +330,8 @@ class JadwalInternalController extends Controller
                         'html' => nl2br($pesanFinal),
                     ]);
 
-                Log::info("HTTP Status : " . $response->status());
-                Log::info("Response API : " . $response->body());
+                // Log::info("HTTP Status : " . $response->status());
+                // Log::info("Response API : " . $response->body());
 
 
                 // WaLog::create([
@@ -342,42 +342,42 @@ class JadwalInternalController extends Controller
                 //     'response_api' => $response->body(),
                 // ]);
 
-                Log::info("Berhasil simpan log");
+                // Log::info("Berhasil simpan log");
 
             } catch (\Throwable $e) {
 
-                Log::error("EXCEPTION");
-                Log::error($e->getMessage());
-                Log::error($e->getFile());
-                Log::error($e->getLine());
+                // Log::error("EXCEPTION");
+                // Log::error($e->getMessage());
+                // Log::error($e->getFile());
+                // Log::error($e->getLine());
 
             }
         }
 
-        Log::info("=== SELESAI ===");
+        // Log::info("=== SELESAI ===");
 
         return back()->with('success', 'Selesai');
     }
 
     public function sendWhatsappEksternal(Request $request)
     {
-        Log::info("=== MULAI KIRIM WHATSAPP ===");
+        // Log::info("=== MULAI KIRIM WHATSAPP ===");
 
         $idJadwal = $request->id;
         $slugDicari = $request->template_slug;
 
-        Log::info("ID Jadwal: {$idJadwal}");
-        Log::info("Slug Template: {$slugDicari}");
+        // Log::info("ID Jadwal: {$idJadwal}");
+        // Log::info("Slug Template: {$slugDicari}");
 
         $jadwal = DiklatEksternal::select('id', 'tanggal_mulai', 'diklat', 'nrp')->findOrFail($idJadwal);
 
-        Log::info('Isi NRP di jadwal: ' . $jadwal->nrp);
+        // Log::info('Isi NRP di jadwal: ' . $jadwal->nrp);
         $daftarNrp = [$jadwal->nrp];
 
 
         $penerima = NoHpKaryawan::whereIn('nrp', $daftarNrp)->get();
 
-        Log::info("Jumlah nomor WA: " . $penerima->count());
+        // Log::info("Jumlah nomor WA: " . $penerima->count());
 
         if ($penerima->isEmpty()) {
             Log::warning("Nomor WA tidak ditemukan");
@@ -395,9 +395,9 @@ class JadwalInternalController extends Controller
 
         foreach ($penerima as $karyawan) {
 
-            Log::info("=================================");
-            Log::info("Mengirim ke {$karyawan->nama}");
-            Log::info("Nomor: {$karyawan->email}");
+            // Log::info("=================================");
+            // Log::info("Mengirim ke {$karyawan->nama}");
+            // Log::info("Nomor: {$karyawan->email}");
 
             $pesanFinal = str_replace(
                 ['{nama}', '{judul}', '{tanggal}', '{lokasi}'],
@@ -410,8 +410,8 @@ class JadwalInternalController extends Controller
                 $template->pesan
             );
 
-            Log::info("Isi Pesan:");
-            Log::info($pesanFinal);
+            // Log::info("Isi Pesan:");
+            // Log::info($pesanFinal);
 
             try {
 
@@ -423,8 +423,8 @@ class JadwalInternalController extends Controller
                         'html' => nl2br($pesanFinal),
                     ]);
 
-                Log::info("HTTP Status : " . $response->status());
-                Log::info("Response API : " . $response->body());
+                // Log::info("HTTP Status : " . $response->status());
+                // Log::info("Response API : " . $response->body());
 
                 // WaLog::create([
                 //     'nomor_tujuan' => $karyawan->nomor_wa,
@@ -434,19 +434,19 @@ class JadwalInternalController extends Controller
                 //     'response_api' => $response->body(),
                 // ]);
 
-                Log::info("Berhasil simpan log");
+                // Log::info("Berhasil simpan log");
 
             } catch (\Throwable $e) {
 
-                Log::error("EXCEPTION");
-                Log::error($e->getMessage());
-                Log::error($e->getFile());
-                Log::error($e->getLine());
+                // Log::error("EXCEPTION");
+                // Log::error($e->getMessage());
+                // Log::error($e->getFile());
+                // Log::error($e->getLine());
 
             }
         }
 
-        Log::info("=== SELESAI ===");
+        // Log::info("=== SELESAI ===");
 
         return back()->with('success', 'Selesai');
     }
