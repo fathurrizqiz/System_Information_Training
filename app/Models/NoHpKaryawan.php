@@ -12,7 +12,8 @@ class NoHpKaryawan extends Model
         'nama',
         'nomor_wa',
         'bagian',
-        'nrp'
+        'nrp',
+        'email'
     ];
 
     /**

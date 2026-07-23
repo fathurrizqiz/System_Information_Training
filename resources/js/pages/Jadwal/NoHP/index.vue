@@ -16,6 +16,7 @@ interface NoHpKaryawan {
     id: number;
     nama: string;
     nomor_wa: string;
+    email?: string | null;
     bagian?: string | null;
     nrp?: string | null;
 }
@@ -34,6 +35,7 @@ const form = useForm({
     nomor_wa: '' as string,
     bagian: '' as string,
     nrp: '' as string | null,
+    email: '' as string | null,
 });
 
 // Logic Autocomplete
@@ -42,7 +44,7 @@ const filteredKaryawan = computed(() => {
     return props.karyawan.filter((user) => 
         user.nama_karyawan.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
         user.bagian.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-        user.nrp?.toLowerCase().includes(searchQuery.value.toLowerCase())
+        user.nrp?.toLowerCase().includes(searchQuery.value.toLowerCase()) 
     );
 });
 
@@ -109,6 +111,7 @@ function goTemplate() {
                             <tr>
                                 <th class="px-6 py-4 font-semibold">Karyawan</th>
                                 <th class="px-6 py-4 font-semibold">Nomor WhatsApp</th>
+                                <th class="px-6 py-4 font-semibold">Email</th>
                                 <th class="px-6 py-4 font-semibold text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -121,6 +124,11 @@ function goTemplate() {
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100 font-mono">
                                         {{ item.nomor_wa }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100 font-mono">
+                                        {{ item.email }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
@@ -193,6 +201,19 @@ function goTemplate() {
                                 />
                             </div>
                             <p v-if="form.errors.nomor_wa" class="text-red-500 text-xs mt-1.5 font-medium">{{ form.errors.nomor_wa }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-widest">Email</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-2.5 text-gray-400 text-sm font-mono">+</span>
+                                <input 
+                                    v-model="form.email" 
+                                    type="email" 
+                                    placeholder="...@gmail.com"
+                                    class="w-full pl-7 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition border-gray-200 font-mono text-sm"
+                                />
+                            </div>
+                            <p v-if="form.errors.email" class="text-red-500 text-xs mt-1.5 font-medium">{{ form.errors.email }}</p>
                         </div>
 
                         <!-- Input Jabatan -->

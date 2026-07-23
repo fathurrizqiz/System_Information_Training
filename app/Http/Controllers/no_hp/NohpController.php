@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\no_hp;
 
 use App\Http\Controllers\Controller;
+use App\Mail\KaryawanTerdaftarMail;
 use App\Models\Karyawans;
 use App\Models\NoHpKaryawan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class NohpController extends Controller
@@ -25,15 +27,23 @@ class NohpController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama' => 'required|string|max:100',
             'nomor_wa' => 'required|string|max:20|unique:no_hp_karyawan,nomor_wa',
-            'bagian' => 'nullable|string|max:255',
-            'nrp' => 'nullable|string|max:255',
+            'email'=> 'nullable|email|max:100',
+            'bagian' => 'nullable|string|max:20',
+            'nrp' => 'nullable|string|max:20',
         ]);
 
-        NoHpKaryawan::create($validatedData);
+        $data = NoHpKaryawan::create($validatedData);
 
-        return redirect()->route('nohp.index')->with('success', 'Data nomor WA berhasil disimpan.');
+        if ($data->email) {
+        Mail::to($data->email)
+            ->send(new KaryawanTerdaftarMail($data));
+    }
+
+    return redirect()->route('nohp.index')
+        ->with('success', 'Data berhasil disimpan.');
+
     }
 
     public function destroy($id)
