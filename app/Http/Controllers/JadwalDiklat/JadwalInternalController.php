@@ -45,98 +45,89 @@ class JadwalInternalController extends Controller
             ->get();
 
         // 2. HLC (Status Offered/Undangan)
-        $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($nrp) {
-            if (auth()->user()->role !== 'admin_diklat') {
-                $q->where('nrp', $nrp);
-            }
-            $q
-
+        $user = auth()->user();
+        $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($user) {
+            $q->when(
+                $user->role !== 'admin_diklat',
+                fn($query) => $query->where('nrp', $user->nrp)
+            )
                 ->whereIn('status', [
                     'Setuju',
                     'Hadir',
                     'approved',
-                    'rejected'
+                    'rejected',
                 ])
                 ->whereDate('tanggal_selesai', '>=', Carbon::today());
         })
             ->with([
-                'hlc' => function ($q) use ($nrp) {
-                    if (auth()->user()->role !== 'admin_diklat') {
-                        $q->where('nrp', $nrp);
-                    }
-                    $q
+                'hlc' => function ($q) use ($user) {
+                    $q->when(
+                        $user->role !== 'admin_diklat',
+                        fn($query) => $query->where('nrp', $user->nrp)
+                    )
                         ->whereIn('status', [
                             'Setuju',
                             'Hadir',
                             'approved',
-                            'rejected'
+                            'rejected',
                         ])
                         ->whereDate('tanggal_selesai', '>=', Carbon::today())
-                        ->with([
-                            'kehadiranHariIni'
-                        ])
+                        ->with('kehadiranHariIni')
                         ->orderBy('tanggal_mulai', 'asc');
                 }
             ])
             ->when(
                 $search,
-                fn($q) =>
-                $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                fn($q) => $q->where('nama_diklat', 'ILIKE', "%{$search}%")
             )
             ->get();
 
-        // pengecekan
-        $hlc->each(function ($program) use ($nrp) {
-            $program->hlc->each(function ($hlc) use ($nrp) {
-                $hlc->is_peserta = $hlc->nrp === $nrp;
+        $hlc->each(function ($program) use ($user) {
+            $program->hlc->each(function ($hlc) use ($user) {
+                $hlc->is_peserta = $hlc->nrp === $user->nrp;
             });
         });
 
         // 3. Eksternal (Status Offered/Undangan)
-        $eksternal = ProgramEksternal::whereHas('eksternal', function ($q) use ($nrp) {
-            if (auth()->user()->role !== 'admin_diklat') {
-                $q->where('nrp', $nrp);
-            }
-            $q
+        $eksternal = ProgramEksternal::whereHas('eksternal', function ($q) use ($user) {
+            $q->when(
+                $user->role !== 'admin_diklat',
+                fn($query) => $query->where('nrp', $user->nrp)
+            )
                 ->whereIn('status', [
                     'Setuju',
                     'Hadir',
                     'approved',
-                    'rejected'
+                    'rejected',
                 ])
                 ->whereDate('tanggal_selesai', '>=', Carbon::today());
         })
             ->with([
-                'eksternal' => function ($q) use ($nrp) {
-                    if (auth()->user()->role !== 'admin_diklat') {
-                        $q->where('nrp', $nrp);
-                    }
-                    $q
-
+                'eksternal' => function ($q) use ($user) {
+                    $q->when(
+                        $user->role !== 'admin_diklat',
+                        fn($query) => $query->where('nrp', $user->nrp)
+                    )
                         ->whereIn('status', [
                             'Setuju',
                             'Hadir',
                             'approved',
-                            'rejected'
+                            'rejected',
                         ])
                         ->whereDate('tanggal_selesai', '>=', Carbon::today())
-                        ->with([
-                            'kehadiranHariIni'
-                        ])
+                        ->with('kehadiranHariIni')
                         ->orderBy('tanggal_mulai', 'asc');
                 }
             ])
             ->when(
                 $search,
-                fn($q) =>
-                $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                fn($q) => $q->where('nama_diklat', 'ILIKE', "%{$search}%")
             )
             ->get();
 
-        // pengecekan
-        $eksternal->each(function ($program) use ($nrp) {
-            $program->eksternal->each(function ($eks) use ($nrp) {
-                $eks->is_peserta = $eks->nrp === $nrp;
+        $eksternal->each(function ($program) use ($user) {
+            $program->eksternal->each(function ($eks) use ($user) {
+                $eks->is_peserta = $eks->nrp === $user->nrp;
             });
         });
 
