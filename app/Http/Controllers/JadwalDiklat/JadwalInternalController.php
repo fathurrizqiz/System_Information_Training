@@ -30,7 +30,7 @@ class JadwalInternalController extends Controller
         $search = $request->input('search');
 
         $internal = PeriodeUtama::with(['detail', 'meeting'])
-            ->when(auth()->user()->role == 'admin_diklat', function ($query) {
+            ->when(auth()->user()->role !== 'admin_diklat', function ($query) {
                 $query->whereHas('peserta', function ($peserta) {
                     $peserta->where('nrp', auth()->user()->nrp);
                 });
@@ -46,7 +46,7 @@ class JadwalInternalController extends Controller
 
         // 2. HLC (Status Offered/Undangan)
         $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($nrp) {
-            if (auth()->user()->role == 'admin_diklat') {
+            if (auth()->user()->role !== 'admin_diklat') {
                 $q->where('nrp', $nrp);
             }
             $q
@@ -61,7 +61,7 @@ class JadwalInternalController extends Controller
         })
             ->with([
                 'hlc' => function ($q) use ($nrp) {
-                    if (auth()->user()->role == 'admin_diklat') {
+                    if (auth()->user()->role !== 'admin_diklat') {
                         $q->where('nrp', $nrp);
                     }
                     $q
@@ -94,7 +94,7 @@ class JadwalInternalController extends Controller
 
         // 3. Eksternal (Status Offered/Undangan)
         $eksternal = ProgramEksternal::whereHas('eksternal', function ($q) use ($nrp) {
-            if (auth()->user()->role == 'admin_diklat') {
+            if (auth()->user()->role !== 'admin_diklat') {
                 $q->where('nrp', $nrp);
             }
             $q
@@ -108,7 +108,7 @@ class JadwalInternalController extends Controller
         })
             ->with([
                 'eksternal' => function ($q) use ($nrp) {
-                    if (auth()->user()->role == 'admin_diklat') {
+                    if (auth()->user()->role !== 'admin_diklat') {
                         $q->where('nrp', $nrp);
                     }
                     $q
