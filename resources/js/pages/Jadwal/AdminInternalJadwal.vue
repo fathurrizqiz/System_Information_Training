@@ -1139,7 +1139,7 @@ const absenHariIniHLC = (hlc: any) => {
                                     <th class="px-6 py-4">Program</th>
                                     <th class="px-6 py-4">Mulai</th>
                                     <th class="px-6 py-4">Aksi</th>
-                                    <th class="px-6 py-4">Notifikasi</th>
+                                    <th v-if="roles.includes('admin_diklat')" class="px-6 py-4">Notifikasi</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -1305,7 +1305,7 @@ const absenHariIniHLC = (hlc: any) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td v-if="roles.includes('admin_diklat')">
                                             <button
                                                 @click="
                                                     kirimNotifikasiEksternal(
