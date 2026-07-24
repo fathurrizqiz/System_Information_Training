@@ -40,6 +40,7 @@ const props = defineProps<{
     ValidasiStart?: (string | number)[];
     runningPeriodeId?: number;
     isRunning?: boolean;
+    templates: any[];
 }>();
 
 const selectedPeriode = ref(props.runningPeriodeId?.toString() || '');
@@ -195,7 +196,40 @@ const TambahLinkZoom = () => {
             },
         },
     );
-}
+};
+
+
+
+const selectedTemplate = ref(
+    props.templates.length > 0 ? props.templates[0].slug : '',
+);
+
+const kirimNotifikasi = (periodeId: number, tipe: string) => {
+    if (!selectedTemplate.value) {
+        alert('Silakan pilih template terlebih dahulu!');
+        return;
+    }
+
+    if (
+        confirm(
+            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
+        )
+    ) {
+        router.post(
+            route('jadwal.send-wa'),
+            {
+                id: periodeId,
+                tipe: tipe,
+                template_slug: selectedTemplate.value,
+            },
+            {
+                onSuccess: () => {
+                    toast.success('Notifikasi Berhasil dikirim!');
+                },
+            },
+        );
+    }
+};
 </script>
 
 <template>
@@ -232,6 +266,58 @@ const TambahLinkZoom = () => {
                 </select>
 
                 <div class="mt-4 flex items-center justify-between">
+                    <div
+                    for="template-select"
+                    class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
+                >
+                    <label
+                        class="text-xs font-bold tracking-widest text-slate-500 uppercase"
+                        >Pilih Template Pesan:</label
+                    >
+                    <select
+                        v-model="selectedTemplate"
+                        class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
+                    >
+                        <option value="" disabled>-- Pilih Template --</option>
+                        <option
+                            v-for="temp in templates"
+                            :key="temp.id"
+                            :value="temp.slug"
+                        >
+                            {{ temp.nama_template }}
+                        </option>
+                    </select>
+                    <p class="text-[10px] text-blue-500 italic">
+                        *Pilih template terlebih dahulu sebelum klik 'Umumkan
+                        Email'
+                    </p>
+                </div>
+                    <button :disabled="!selectedPeriode"
+                        @click.stop="kirimNotifikasi(selectedPeriode, 'internal')"
+                        class="m-3 flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs shadow-sm transition hover:animate-pulse hover:bg-blue-100 hover:text-blue-700"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#0080ff"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-bell-dot-icon lucide-bell-dot"
+                        >
+                            <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+                            <path
+                                d="M11.68 2.009A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673c-.824-.85-1.678-1.731-2.21-3.348"
+                            />
+                            <circle cx="18" cy="5" r="3" />
+                        </svg>
+                    </button>
+                </div >
+                
+                <div class="mt-4 flex items-center justify-between">
                     <span class="text-gray-600">Status Periode:</span>
                     <span
                         v-if="!isRunning"
@@ -263,7 +349,7 @@ const TambahLinkZoom = () => {
                 />
             </div>
             <div
-                class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm flex gap-3"
+                class="mb-6 flex gap-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
             >
                 <h2 class="mb-3 text-lg font-medium text-gray-700">
                     Link Zoom (Opsional)
@@ -276,16 +362,14 @@ const TambahLinkZoom = () => {
                 <button
                     type="button"
                     @click="TambahLinkZoom"
-                    class="w-42 h-20 rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    class="h-20 w-42 rounded-md border border-gray-300 p-2.5 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                     placeholder="0"
                 >
                     Tambah Link Zoom
                 </button>
             </div>
 
-            <div class="mb-8 flex justify-end">
-                
-            </div>
+            <div class="mb-8 flex justify-end"></div>
 
             <div class="mb-8 flex justify-end">
                 <button

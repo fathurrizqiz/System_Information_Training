@@ -118,7 +118,7 @@ const mainNavItems = computed(() => [
         roles: ['admin_diklat'],
     },
     {
-        title: 'Whattsapp Settings',
+        title: 'Settings',
         href: '/Settings',
         icon: Settings,
         roles: ['admin_diklat'],

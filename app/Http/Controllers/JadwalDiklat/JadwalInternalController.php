@@ -30,12 +30,10 @@ class JadwalInternalController extends Controller
         $search = $request->input('search');
 
         $internal = PeriodeUtama::with(['detail', 'meeting'])
-            ->when(auth()->user()->role !== 'admin_diklat', function ($query) {
-                $query->whereHas('peserta', function ($peserta) {
-                    $peserta->where('nrp', auth()->user()->nrp);
-                });
+            ->whereHas('peserta', function ($peserta) {
+                $peserta->where('nrp', auth()->user()->nrp);
             })
-            ->where('tanggal', '>=', Carbon::today())
+            ->whereDate('tanggal', '>=', Carbon::today())
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('detail', function ($detail) use ($search) {
                     $detail->where('nama_diklat', 'ILIKE', "%{$search}%");

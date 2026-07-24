@@ -10,16 +10,33 @@ use App\Models\Karyawans;
 use App\Models\PendidikanFormalModels;
 use App\Models\PeriodeUtama;
 use App\Models\TestToken;
+use App\Models\WaTemplate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DiklatInternalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $programs = PendidikanFormalModels::with(['details.aksi'])->get();
+        $search = $request->input('search');
+
+        $programs = PendidikanFormalModels::with(['details.aksi'])
+            ->when($search, function ($query) use ($search) {
+                $query->where('nama_program', 'ILIKE', "%{$search}%")
+                    ->orWhereHas('details', function ($query) use ($search) {
+                        $query->where('nama_diklat', 'ILIKE', "%{$search}%");
+                    });
+            })
+            ->get();
+
+        $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/index', [
             'programs' => $programs,
+            'templates' => $templates,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
@@ -97,6 +114,7 @@ class DiklatInternalController extends Controller
             ];
         }
 
+        $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/aksilanjut', [
             'data' => $detail,
             'detail_id' => $detail->id,
@@ -108,6 +126,7 @@ class DiklatInternalController extends Controller
             'isRunning' => $aksi !== null,
             'runningPeriodeId' => $runningPeriodeId,
             'token_link' => $tokenLink,
+            'templates' => $templates,
         ]);
     }
 
@@ -132,7 +151,7 @@ class DiklatInternalController extends Controller
         return redirect()->back()->with('success', 'Link Zoom berhasil disimpan!');
     }
 
-    
+
 
     public function periode($id)
     {

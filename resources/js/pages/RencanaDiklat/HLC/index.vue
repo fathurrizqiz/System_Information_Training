@@ -56,15 +56,14 @@ interface DiklatRowWithKaryawan extends DiklatRow {
 const props = defineProps<{
     program: Program[];
     karyawans: Karyawan[];
+    templates: any[];
 }>();
 
 // --- State ---
 // const programs = ref(props.program);
 const programs = computed(() => page.props.program as Program[]);
 const isLoading = ref(false);
-const flashMessage = computed(
-    () => page.props.flash?.success || page.props.flash?.error,
-);
+
 
 // state autocomplete
 const karyawanSearchQuery = ref('');
@@ -360,6 +359,37 @@ const openReasonModal = (reason: string) => {
     selectedReason.value = reason;
     showReasonModal.value = true;
 };
+
+const selectedTemplate = ref(
+    props.templates.length > 0 ? props.templates[0].slug : '',
+);
+
+const kirimNotifikasiHLC = (id: number, tipe: string) => {
+    if (!selectedTemplate.value) {
+        alert('Silakan pilih template terlebih dahulu!');
+        return;
+    }
+
+    if (
+        confirm(
+            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
+        )
+    ) {
+        router.post(
+            route('jadwal.hlc.send-wa'),
+            {
+                id: id,
+                tipe: tipe,
+                template_slug: selectedTemplate.value,
+            },
+            {
+                onSuccess: () => {
+                    toast.success('Notifikasi Berhasil dikirim!');
+                },
+            },
+        );
+    }
+};
 </script>
 
 <template>
@@ -427,6 +457,34 @@ const openReasonModal = (reason: string) => {
                 class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-end dark:border-slate-800 dark:bg-slate-900"
             >
                 <div class="flex-1">
+                    <div
+                        for="template-select"
+                        class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
+                    >
+                        <label
+                            class="text-xs font-bold tracking-widest text-slate-500 uppercase"
+                            >Pilih Template Pesan:</label
+                        >
+                        <select
+                            v-model="selectedTemplate"
+                            class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
+                        >
+                            <option value="" disabled>
+                                -- Pilih Template --
+                            </option>
+                            <option
+                                v-for="temp in templates"
+                                :key="temp.id"
+                                :value="temp.slug"
+                            >
+                                {{ temp.nama_template }}
+                            </option>
+                        </select>
+                        <p class="text-[10px] text-blue-500 italic">
+                            *Pilih template terlebih dahulu sebelum klik
+                            'Umumkan Email'
+                        </p>
+                    </div>
                     <label
                         class="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase"
                         >Cari Program</label
@@ -453,6 +511,7 @@ const openReasonModal = (reason: string) => {
                             ></path>
                         </svg>
                     </div>
+                    
                 </div>
                 <div class="w-full md:w-48">
                     <label
@@ -648,6 +707,16 @@ const openReasonModal = (reason: string) => {
                                         >
                                             Alasan
                                         </th>
+                                        <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
+                                            Nama Peserta
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 font-semibold tracking-wider uppercase"
+                                        >
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody
@@ -787,6 +856,18 @@ const openReasonModal = (reason: string) => {
                                                         d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                                                     />
                                                 </svg>
+                                            </button>
+                                            <button
+                                                
+                                                @click="
+                                                    kirimNotifikasiHLC(
+                                                        row.id,
+                                                        'hlc',
+                                                    )
+                                                "
+                                                class="rounded-md px-4 py-2 text-sm font-medium text-white hover:animate-pulse focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0080ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-dot-icon lucide-bell-dot"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M11.68 2.009A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673c-.824-.85-1.678-1.731-2.21-3.348"/><circle cx="18" cy="5" r="3"/></svg>
                                             </button>
                                         </td>
                                     </tr>

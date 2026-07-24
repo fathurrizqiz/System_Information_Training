@@ -10,6 +10,7 @@ use App\Models\HLCManajement;
 use App\Models\Karyawans;
 use App\Models\ProgramHlc;
 use App\Models\RekapJamDiklat;
+use App\Models\WaTemplate;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -21,11 +22,12 @@ class HLCController extends Controller
     {
         $karyawan = Karyawans::all();
         $program = ProgramHlc::with('hlc.karyawan')->orderBy('tahun', 'desc')->get();
-
+        $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
 
         return Inertia::render('RencanaDiklat/HLC/index', [
             'program' => $program,
             'karyawans' => $karyawan,
+            'templates' => $templates,
 
         ]);
     }

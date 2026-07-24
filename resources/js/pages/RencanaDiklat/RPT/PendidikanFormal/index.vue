@@ -5,7 +5,7 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 // --- Type Definitions ---
@@ -33,6 +33,10 @@ interface DiklatProgram {
 
 const props = defineProps<{
     programs: DiklatProgram[];
+    templates: any[];
+    filters: {
+        search: string | null;
+    };
 }>();
 
 // --- State ---
@@ -197,16 +201,27 @@ const rawRole = auth.user?.role || [];
 const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 
 const menuItems = [
-    // ...(roles.includes('admin_kesra') || roles.includes('teknis')
-    //     ? [{ title: 'Data Lembur', href: '/karyawan' }]
-    //     : []),
-    // ...(roles.includes('admin_kesra')
-    //     ? [{ title: 'Gaji Karyawan', href: '/gaji' }]
-    //     : []),
     { title: 'Internal', href: '/RencanaDiklat/RPT/PF' },
     { title: 'Eksternal', href: '/RencanaDiklat/RPT/PN' },
     { title: 'HLC', href: '/HLC/Home/manajemen' },
 ];
+
+// search functionality
+const search = ref(props.filters.search ?? '');
+
+watch(search, (value) => {
+    router.get(
+        '/RencanaDiklat/RPT/PF',
+        {
+            search: value,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+});
 
 function detail(id: number) {
     router.visit(`/RencanaDiklat/Internal/detail/aksi/${id}`);
@@ -214,6 +229,37 @@ function detail(id: number) {
 function periode(id: number) {
     router.visit(`/RencanaDiklat/Internal/detail/periode/${id}`);
 }
+
+const selectedTemplate = ref(
+    props.templates.length > 0 ? props.templates[0].slug : '',
+);
+
+const kirimNotifikasi = (id: number, tipe: string) => {
+    if (!selectedTemplate.value) {
+        alert('Silakan pilih template terlebih dahulu!');
+        return;
+    }
+
+    if (
+        confirm(
+            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
+        )
+    ) {
+        router.post(
+            route('jadwal.send-wa'),
+            {
+                id: id,
+                tipe: tipe,
+                template_slug: selectedTemplate.value,
+            },
+            {
+                onSuccess: () => {
+                    toast.success('Notifikasi Berhasil dikirim!');
+                },
+            },
+        );
+    }
+};
 </script>
 
 <template>
@@ -273,6 +319,40 @@ function periode(id: number) {
                     </svg>
                     Tambah Program
                 </button>
+            </div>
+            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                <Input
+                    v-model="search"
+                    type="text"
+                    placeholder="Cari nama program atau nama diklat..."
+                    class="w-80"
+                />
+                <div
+                    for="template-select"
+                    class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
+                >
+                    <label
+                        class="text-xs font-bold tracking-widest text-slate-500 uppercase"
+                        >Pilih Template Pesan:</label
+                    >
+                    <select
+                        v-model="selectedTemplate"
+                        class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
+                    >
+                        <option value="" disabled>-- Pilih Template --</option>
+                        <option
+                            v-for="temp in templates"
+                            :key="temp.id"
+                            :value="temp.slug"
+                        >
+                            {{ temp.nama_template }}
+                        </option>
+                    </select>
+                    <p class="text-[10px] text-blue-500 italic">
+                        *Pilih template terlebih dahulu sebelum klik 'Umumkan
+                        Email'
+                    </p>
+                </div>
             </div>
 
             <!-- Program List -->
@@ -401,6 +481,36 @@ function periode(id: number) {
                                             class="flex w-20 justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-violet-600 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                                         >
                                             Hapus
+                                        </button>
+                                        <button
+                                            @click.stop="
+                                                kirimNotifikasi(
+                                                    details.id,
+                                                    'internal',
+                                                )
+                                            "
+                                            class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs shadow-sm transition hover:animate-pulse hover:bg-blue-100 hover:text-blue-700"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="24"
+                                                height="24"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="#0080ff"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-bell-dot-icon lucide-bell-dot"
+                                            >
+                                                <path
+                                                    d="M10.268 21a2 2 0 0 0 3.464 0"
+                                                />
+                                                <path
+                                                    d="M11.68 2.009A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673c-.824-.85-1.678-1.731-2.21-3.348"
+                                                />
+                                                <circle cx="18" cy="5" r="3" />
+                                            </svg>
                                         </button>
                                         <div v-if="details.aksi">
                                             <span
@@ -575,7 +685,6 @@ function periode(id: number) {
                                         v-model="detailForm.nama_diklat"
                                         id="nama_diklat"
                                         type="text"
-                                        
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
                                     <p
@@ -595,7 +704,6 @@ function periode(id: number) {
                                         v-model="detailForm.keterangan"
                                         id="keterangan"
                                         type="text"
-                                        
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
                                     <p
@@ -615,7 +723,6 @@ function periode(id: number) {
                                         v-model="detailForm.pengajar"
                                         id="pengajar"
                                         type="text"
-                                        
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                     />
                                     <p

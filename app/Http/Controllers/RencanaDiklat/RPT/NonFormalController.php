@@ -10,6 +10,7 @@ use App\Models\HLCManajement;
 use App\Models\Karyawans;
 use App\Models\ProgramEksternal;
 use App\Models\RekapJamDiklat;
+use App\Models\WaTemplate;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -22,9 +23,11 @@ class NonFormalController extends Controller
     {
         $karyawan = Karyawans::all();
         $program = ProgramEksternal::with('eksternal.karyawan')->orderBy('tahun', 'desc')->get();
+        $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index', [
             'karyawan' => $karyawan,
-            'program' => $program
+            'program' => $program,
+            'templates' => $templates
         ]);
     }
     public function storeProgram(Request $request)

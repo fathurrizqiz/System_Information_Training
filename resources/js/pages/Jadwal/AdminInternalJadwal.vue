@@ -59,7 +59,6 @@ const props = defineProps<{
 const activeTab = ref('internal');
 const search = ref(props.filters.search || '');
 
-
 // --- Functions ---
 const formatDate = (date: string) => {
     if (!date) return '-';
@@ -86,92 +85,6 @@ watch(search, (newValue) => {
 function goHP() {
     router.get('/NoHP');
 }
-
-// FUNCTION UNTUK MENGATUR NOTIFIKASI WHATSAPP
-// panggil whattsapp
-const selectedTemplate = ref(
-    props.templates.length > 0 ? props.templates[0].slug : '',
-);
-const kirimNotifikasi = (id: number, tipe: string) => {
-    if (!selectedTemplate.value) {
-        alert('Silakan pilih template terlebih dahulu!');
-        return;
-    }
-
-    if (
-        confirm(
-            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
-        )
-    ) {
-        router.post(
-            route('jadwal.send-wa'),
-            {
-                id: id,
-                tipe: tipe,
-                template_slug: selectedTemplate.value,
-            },
-            {
-                onSuccess: () => {
-                    toast.success('Notifikasi Berhasil dikirim!');
-                },
-            },
-        );
-    }
-};
-
-const kirimNotifikasiEksternal = (id: number, tipe: string) => {
-    if (!selectedTemplate.value) {
-        alert('Silakan pilih template terlebih dahulu!');
-        return;
-    }
-
-    if (
-        confirm(
-            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
-        )
-    ) {
-        router.post(
-            route('jadwal.eksternal.send-wa'),
-            {
-                id: id,
-                tipe: tipe,
-                template_slug: selectedTemplate.value,
-            },
-            {
-                onSuccess: () => {
-                    toast.success('Notifikasi Berhasil dikirim!');
-                },
-            },
-        );
-    }
-};
-
-const kirimNotifikasiHLC = (id: number, tipe: string) => {
-    if (!selectedTemplate.value) {
-        alert('Silakan pilih template terlebih dahulu!');
-        return;
-    }
-
-    if (
-        confirm(
-            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
-        )
-    ) {
-        router.post(
-            route('jadwal.hlc.send-wa'),
-            {
-                id: id,
-                tipe: tipe,
-                template_slug: selectedTemplate.value,
-            },
-            {
-                onSuccess: () => {
-                    toast.success('Notifikasi Berhasil dikirim!');
-                },
-            },
-        );
-    }
-};
 
 const parseLocalDate = (dateStr: string) => {
     return new Date(dateStr + 'T00:00:00');
@@ -430,33 +343,7 @@ const absenHariIniHLC = (hlc: any) => {
                         class="h-10 w-full rounded-xl border border-slate-300 bg-slate-50 pr-4 pl-10 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
                     />
                 </div>
-                <div
-                    v-if="roles.includes('admin_diklat')"
-                    for="template-select"
-                    class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
-                >
-                    <label
-                        class="text-xs font-bold tracking-widest text-slate-500 uppercase"
-                        >Pilih Template Pesan:</label
-                    >
-                    <select
-                        v-model="selectedTemplate"
-                        class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
-                    >
-                        <option value="" disabled>-- Pilih Template --</option>
-                        <option
-                            v-for="temp in templates"
-                            :key="temp.id"
-                            :value="temp.slug"
-                        >
-                            {{ temp.nama_template }}
-                        </option>
-                    </select>
-                    <p class="text-[10px] text-blue-500 italic">
-                        *Pilih template terlebih dahulu sebelum klik 'Umumkan
-                        WA'
-                    </p>
-                </div>
+
                 <!-- Horizontal Tabs: Scrollable on Mobile -->
                 <div
                     class="no-scrollbar flex gap-2 overflow-x-auto border-t border-slate-100 pt-3 pb-1 dark:border-slate-800"
@@ -591,42 +478,6 @@ const absenHariIniHLC = (hlc: any) => {
                                             >-</span
                                         >
                                     </td>
-                                    <td class="px-6 py-4 font-mono text-xs">
-                                        <button
-                                            v-if="
-                                                roles.includes('admin_diklat')
-                                            "
-                                            @click="
-                                                kirimNotifikasi(
-                                                    item.id,
-                                                    'internal',
-                                                )
-                                            "
-                                            class="flex items-center gap-2 rounded-lg bg-green-500 px-3 py-1.5 text-xs text-white shadow-sm transition hover:bg-green-600"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="#ffffff"
-                                                stroke-width="1.5"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="lucide lucide-megaphone-icon lucide-megaphone"
-                                            >
-                                                <path
-                                                    d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
-                                                />
-                                                <path
-                                                    d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"
-                                                />
-                                                <path d="M8 6v8" />
-                                            </svg>
-                                            Kirim Notifikasi
-                                        </button>
-                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -677,27 +528,6 @@ const absenHariIniHLC = (hlc: any) => {
                                     >
                                         {{ formatDate(item.tanggal!) }}
                                     </p>
-                                    <p
-                                        class="mt-2 text-[10px] font-bold text-slate-400 uppercase"
-                                    >
-                                        Notifikasi Whattsapp
-                                    </p>
-                                    <p class="font-medium dark:text-slate-300">
-                                        <button
-                                            v-if="
-                                                roles.includes('admin_diklat')
-                                            "
-                                            @click="
-                                                kirimNotifikasi(
-                                                    item.id,
-                                                    'internal',
-                                                )
-                                            "
-                                            class="mt-2 h-10 w-32 rounded-lg bg-blue-500 text-white transition duration-300 hover:bg-blue-900"
-                                        >
-                                            Kirim Notifikasi
-                                        </button>
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -722,12 +552,6 @@ const absenHariIniHLC = (hlc: any) => {
                                     <th class="px-6 py-4">Program</th>
                                     <th class="px-6 py-4">Mulai</th>
                                     <th class="px-6 py-4">Aksi / Status</th>
-                                    <th
-                                        v-if="roles.includes('admin_diklat')"
-                                        class="px-6 py-4"
-                                    >
-                                        Notifikasi
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody
@@ -879,26 +703,6 @@ const absenHariIniHLC = (hlc: any) => {
                                                     Mode Admin
                                                 </span>
                                             </div>
-                                        </td>
-
-                                        <!-- Kolom Notifikasi Desktop (Hanya Admin) -->
-                                        <td class="px-6 py-4 font-mono text-xs">
-                                            <button
-                                                v-if="
-                                                    roles.includes(
-                                                        'admin_diklat',
-                                                    )
-                                                "
-                                                @click="
-                                                    kirimNotifikasiHLC(
-                                                        hlc.id,
-                                                        'hlc',
-                                                    )
-                                                "
-                                                class="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                                            >
-                                                Kirim Notifikasi
-                                            </button>
                                         </td>
                                     </tr>
                                 </template>
@@ -1089,31 +893,6 @@ const absenHariIniHLC = (hlc: any) => {
                                             Mode Admin
                                         </span>
                                     </div>
-
-                                    <!-- TOMBOL NOTIFIKASI (UNTUK ADMIN SAJA) -->
-                                    <!-- Pindahkan keluar dari blok is_peserta agar Admin juga bisa lihat -->
-                                    <button
-                                        v-if="roles.includes('admin_diklat')"
-                                        @click="
-                                            kirimNotifikasiHLC(hlc.id, 'hlc')
-                                        "
-                                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 py-3 text-sm font-semibold text-blue-600 active:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                                    >
-                                        <svg
-                                            class="h-4 w-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                                            />
-                                        </svg>
-                                        Kirim Notifikasi Pengingat
-                                    </button>
                                 </div>
                             </div>
                         </template>
@@ -1139,7 +918,6 @@ const absenHariIniHLC = (hlc: any) => {
                                     <th class="px-6 py-4">Program</th>
                                     <th class="px-6 py-4">Mulai</th>
                                     <th class="px-6 py-4">Aksi</th>
-                                    <th v-if="roles.includes('admin_diklat')" class="px-6 py-4">Notifikasi</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -1304,19 +1082,6 @@ const absenHariIniHLC = (hlc: any) => {
                                                     </span>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td v-if="roles.includes('admin_diklat')">
-                                            <button
-                                                @click="
-                                                    kirimNotifikasiEksternal(
-                                                        eks.id,
-                                                        'eksternal',
-                                                    )
-                                                "
-                                                class="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                                            >
-                                                Kirim Notifikasi
-                                            </button>
                                         </td>
                                     </tr>
                                 </template>
@@ -1491,31 +1256,6 @@ const absenHariIniHLC = (hlc: any) => {
                                             Mode Admin
                                         </span>
                                     </div>
-
-                                    <!-- TOMBOL NOTIFIKASI (UNTUK ADMIN SAJA) -->
-                                    <!-- Pindahkan keluar dari blok is_peserta agar Admin juga bisa lihat -->
-                                    <button
-                                        v-if="roles.includes('admin_diklat')"
-                                        @click="
-                                            kirimNotifikasiHLC(eks.id, 'eks')
-                                        "
-                                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 py-3 text-sm font-semibold text-blue-600 active:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                                    >
-                                        <svg
-                                            class="h-4 w-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                                            />
-                                        </svg>
-                                        Kirim Notifikasi Pengingat
-                                    </button>
                                 </div>
                             </div>
                         </template>

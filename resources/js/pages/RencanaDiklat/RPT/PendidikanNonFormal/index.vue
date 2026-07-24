@@ -63,6 +63,7 @@ interface ProgramEksternal {
 const props = defineProps<{
     karyawan: Karyawan[];
     program: ProgramEksternal[];
+    templates: any[];
 }>();
 
 // --- Filter & Pagination State ---
@@ -178,6 +179,42 @@ const hapusDetail = (detailId: number) => {
 const lihatDokumen = (dokumen: string) => {
     window.open(`/storage/${dokumen}`, '_blank');
 };
+
+const openReasonModal = (reason: string) => {
+    selectedReason.value = reason;
+    showReasonModal.value = true;
+};
+
+const selectedTemplate = ref(
+    props.templates.length > 0 ? props.templates[0].slug : '',
+);
+
+const kirimNotifikasiEksternal = (id: number, tipe: string) => {
+    if (!selectedTemplate.value) {
+        alert('Silakan pilih template terlebih dahulu!');
+        return;
+    }
+
+    if (
+        confirm(
+            `Kirim notifikasi menggunakan template "${selectedTemplate.value}"?`,
+        )
+    ) {
+        router.post(
+            route('jadwal.eksternal.send-wa'),
+            {
+                id: id,
+                tipe: tipe,
+                template_slug: selectedTemplate.value,
+            },
+            {
+                onSuccess: () => {
+                    toast.success('Notifikasi Berhasil dikirim!');
+                },
+            },
+        );
+    }
+};
 </script>
 
 <template>
@@ -244,7 +281,36 @@ const lihatDokumen = (dokumen: string) => {
                 class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-end dark:border-slate-800 dark:bg-slate-900"
             >
                 <div class="flex-1">
-                    <label
+                    <div
+                        for="template-select"
+                        class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
+                    >
+                        <label
+                            class="text-xs font-bold tracking-widest text-slate-500 uppercase"
+                            >Pilih Template Pesan:</label
+                        >
+                        <select
+                            v-model="selectedTemplate"
+                            class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
+                        >
+                            <option value="" disabled>
+                                -- Pilih Template --
+                            </option>
+                            <option
+                                v-for="temp in templates"
+                                :key="temp.id"
+                                :value="temp.slug"
+                            >
+                                {{ temp.nama_template }}
+                            </option>
+                        </select>
+                        <p class="text-[10px] text-blue-500 italic">
+                            *Pilih template terlebih dahulu sebelum klik
+                            'Umumkan Email'
+                        </p>
+                    </div>
+                    <div>
+                        <label
                         class="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase"
                         >Cari Program</label
                     >
@@ -270,7 +336,9 @@ const lihatDokumen = (dokumen: string) => {
                             ></path>
                         </svg>
                     </div>
+                    </div>
                 </div>
+
                 <div class="w-full md:w-48">
                     <label
                         class="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase"
@@ -565,6 +633,40 @@ const lihatDokumen = (dokumen: string) => {
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                                     ></path>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                @click="
+                                                    kirimNotifikasiEksternal(
+                                                        detail.id,
+                                                        'eksternal',
+                                                    )
+                                                "
+                                                class="rounded-md px-4 py-2 text-sm font-medium text-white hover:animate-pulse focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="#0080ff"
+                                                    stroke-width="1.5"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    class="lucide lucide-bell-dot-icon lucide-bell-dot"
+                                                >
+                                                    <path
+                                                        d="M10.268 21a2 2 0 0 0 3.464 0"
+                                                    />
+                                                    <path
+                                                        d="M11.68 2.009A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673c-.824-.85-1.678-1.731-2.21-3.348"
+                                                    />
+                                                    <circle
+                                                        cx="18"
+                                                        cy="5"
+                                                        r="3"
+                                                    />
                                                 </svg>
                                             </button>
                                         </td>
