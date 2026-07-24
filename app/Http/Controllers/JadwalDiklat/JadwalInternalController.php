@@ -46,6 +46,7 @@ class JadwalInternalController extends Controller
 
         // 2. HLC (Status Offered/Undangan)
         $user = auth()->user();
+        $isAdminDiklat = $user->role === 'admin_diklat';
         $hlc = ProgramHlc::whereHas('hlc', function ($q) use ($user) {
             $q->when(
                 $user->role !== 'admin_diklat',
@@ -82,9 +83,9 @@ class JadwalInternalController extends Controller
             )
             ->get();
 
-        $hlc->each(function ($program) use ($user) {
-            $program->hlc->each(function ($hlc) use ($user) {
-                $hlc->is_peserta = $hlc->nrp === $user->nrp;
+        $hlc->each(function ($program) use ($user, $isAdminDiklat) {
+            $program->hlc->each(function ($hlc) use ($user, $isAdminDiklat) {
+                $hlc->is_peserta = $isAdminDiklat || $hlc->nrp === $user->nrp;
             });
         });
 
@@ -125,9 +126,9 @@ class JadwalInternalController extends Controller
             )
             ->get();
 
-        $eksternal->each(function ($program) use ($user) {
-            $program->eksternal->each(function ($eks) use ($user) {
-                $eks->is_peserta = $eks->nrp === $user->nrp;
+        $eksternal->each(function ($program) use ($user, $isAdminDiklat) {
+            $program->eksternal->each(function ($eks) use ($user, $isAdminDiklat) {
+                $eks->is_peserta = $isAdminDiklat || $eks->nrp === $user->nrp;
             });
         });
 
