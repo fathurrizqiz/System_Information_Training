@@ -13,6 +13,7 @@ use App\Http\Controllers\KaryawanDiklat\InternalController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\Materi\MateriController;
 use App\Http\Controllers\no_hp\NohpController;
+use App\Http\Controllers\Notifikasi\NotifikasiController;
 use App\Http\Controllers\Persetujuan\EksternalAdminController;
 use App\Http\Controllers\Persetujuan\HLCAdminController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
@@ -147,10 +148,10 @@ Route::post('/diklat-eksternal/upload-bukti/{id}', [NonFormalController::class, 
 Route::get('/JadwalDiklat/Internal', [JadwalInternalController::class, 'index'])->name('jadwal.internal');
 Route::get('/JadwalDiklat/Histori', [JadwalInternalController::class, 'history'])->name('jadwal.history');
 
-// send wa notification
-Route::post('/jadwal-internal/send-wa', [JadwalInternalController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
-Route::post('/jadwal-eksternal/send-wa', [JadwalInternalController::class, 'sendWhatsappEksternal'])->name('jadwal.eksternal.send-wa');
-Route::post('/jadwal-hlc/send-wa', [JadwalInternalController::class, 'sendWhatsappHLC'])->name('jadwal.hlc.send-wa');
+// send email notification
+Route::post('/jadwal-internal/send-wa', [NotifikasiController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
+Route::post('/jadwal-eksternal/send-wa', [NotifikasiController::class, 'sendWhatsappEksternal'])->name('jadwal.eksternal.send-wa');
+Route::post('/jadwal-hlc/send-wa', [NotifikasiController::class, 'sendWhatsappHLC'])->name('jadwal.hlc.send-wa');
 
 // ABSEN
 Route::post('/diklat-eksternal/{id}/hadir',[NonFormalController::class, 'hadir'])->name('diklat.eksternal.absen');
