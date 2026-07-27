@@ -8,6 +8,14 @@ import { toast } from 'vue3-toastify';
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Datamaster', href: '#' }];
 
+interface Rekam_Jejak {
+    id:number;
+    nama_diklat: string;
+    jam:number;
+    tanggal_mulai:string;
+    tanggal:string;
+    jenis:string;
+}
 interface Employee {
     id: number;
     nama_karyawan: string;
@@ -18,6 +26,8 @@ interface Employee {
     posisi_jabatan: string;
     klinis_non_klinis: string;
     jenis_kelamin: string;
+    total_jam_diklat?: number; 
+    rekam_jejak?: Rekam_Jejak[];
 }
 
 interface Totals {
@@ -202,14 +212,14 @@ const destroyKaryawan = (id: number) => {
         });
     }
 };
-// rekam jejak
-const showModal = ref(false);
-const selectedKaryawan = ref<any>(null);
+// // rekam jejak
+// const showModal = ref(false);
+// const selectedKaryawan = ref<any>(null);
 
-const openHistory = (karyawan: any) => {
-    selectedKaryawan.value = karyawan;
-    showModal.value = true;
-};
+// const openHistory = (karyawan: any) => {
+//     selectedKaryawan.value = karyawan;
+//     showModal.value = true;
+// };
 
 const getBadgeClass = (jenis: string) => {
     switch (jenis) {
@@ -224,6 +234,13 @@ const getBadgeClass = (jenis: string) => {
         default:
             return 'bg-slate-100 text-slate-700';
     }
+};
+
+const expandedRow = ref<number | null>(null);
+
+const toggleRow = (id: number) => {
+    // Jika baris yang diklik sudah terbuka, maka tutup. Jika tidak, buka baris tersebut.
+    expandedRow.value = expandedRow.value === id ? null : id;
 };
 </script>
 
@@ -645,86 +662,289 @@ const getBadgeClass = (jenis: string) => {
                         <tbody
                             class="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-900"
                         >
-                            <tr
+                            <!-- Gunakan <template> karena kita me-render 2 <tr> sekaligus untuk 1 data -->
+                            <template
                                 v-for="employee in filteredEmployees"
-                                @click="openHistory(employee)"
                                 :key="employee.id"
-                                class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25"
                             >
-                                <td
-                                    class="px-6 py-4 font-medium whitespace-nowrap text-slate-900 dark:text-slate-200"
+                                <!-- BARIS UTAMA -->
+                                <tr
+                                    @click="toggleRow(employee.id)"
+                                    class="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/25"
+                                    :class="{
+                                        'bg-slate-50/80 dark:bg-slate-800/40':
+                                            expandedRow === employee.id,
+                                    }"
                                 >
-                                    {{ employee.nama_karyawan }}
-                                </td>
-                                <td
-                                    class="px-6 py-4 font-mono whitespace-nowrap text-slate-500 dark:text-slate-400"
-                                >
-                                    {{ employee.nrp }}
-                                </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
-                                >
-                                    {{ employee.bagian }}
-                                </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
-                                >
-                                    {{ employee.unit_kerja }}
-                                </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
-                                >
-                                    {{ employee.posisi_jabatan }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span
-                                        :class="{
-                                            'inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-sm': true,
-                                            'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400':
-                                                employee.klinis_non_klinis ===
-                                                'Klinis',
-                                            'border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400':
-                                                employee.klinis_non_klinis ===
-                                                'Non Klinis',
-                                            'border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400':
-                                                employee.klinis_non_klinis ===
-                                                'Manajerial Klinis',
-                                            'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400':
-                                                employee.klinis_non_klinis ===
-                                                'Manajerial Non Klinis',
-                                        }"
+                                    <td
+                                        class="px-6 py-4 font-medium whitespace-nowrap text-slate-900 dark:text-slate-200"
                                     >
-                                        {{ employee.klinis_non_klinis }}
-                                    </span>
-                                </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
-                                >
-                                    {{ formatDate(employee.tmt) }}
-                                </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
-                                >
-                                    {{ employee.jenis_kelamin }}
-                                </td>
-                                <td
-                                    class="flex gap-2 px-6 py-4 text-right text-sm font-medium whitespace-nowrap"
-                                >
-                                    <button
-                                        @click="openEditEmployeeModal(employee)"
-                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                        <div class="flex items-center gap-3">
+                                            <!-- Ikon Panah penanda Expandable -->
+                                            <svg
+                                                class="h-4 w-4 text-slate-400 transition-transform duration-300"
+                                                :class="{
+                                                    'rotate-90 text-blue-500':
+                                                        expandedRow ===
+                                                        employee.id,
+                                                }"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                            {{ employee.nama_karyawan }}
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 font-mono whitespace-nowrap text-slate-500 dark:text-slate-400"
                                     >
-                                        Edit
-                                    </button>
+                                        {{ employee.nrp }}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
+                                    >
+                                        {{ employee.bagian }}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
+                                    >
+                                        {{ employee.unit_kerja }}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
+                                    >
+                                        {{ employee.posisi_jabatan }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span
+                                            :class="{
+                                                'inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-sm': true,
+                                                'border border-emerald-200 bg-emerald-50 text-emerald-700':
+                                                    employee.klinis_non_klinis ===
+                                                    'Klinis',
+                                                'border border-blue-200 bg-blue-50 text-blue-700':
+                                                    employee.klinis_non_klinis ===
+                                                    'Non Klinis',
+                                                'border border-indigo-200 bg-indigo-50 text-indigo-700':
+                                                    employee.klinis_non_klinis ===
+                                                    'Manajerial Klinis',
+                                                'border border-amber-200 bg-amber-50 text-amber-700':
+                                                    employee.klinis_non_klinis ===
+                                                    'Manajerial Non Klinis',
+                                            }"
+                                        >
+                                            {{ employee.klinis_non_klinis }}
+                                        </span>
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
+                                    >
+                                        {{ formatDate(employee.tmt) }}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300"
+                                    >
+                                        {{ employee.jenis_kelamin }}
+                                    </td>
+                                    <td
+                                        class="flex gap-2 px-6 py-4 text-right text-sm font-medium whitespace-nowrap"
+                                    >
+                                        <!-- Tambahkan .stop agar klik Edit tidak membuka/menutup row -->
+                                        <button
+                                            @click.stop="
+                                                openEditEmployeeModal(employee)
+                                            "
+                                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                        >
+                                            Edit
+                                        </button>
+                                        <!-- Tambahkan .stop agar klik Delete tidak membuka/menutup row -->
+                                        <button
+                                            @click.stop="
+                                                destroyKaryawan(employee.id)
+                                            "
+                                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
 
-                                    <button
-                                        @click="destroyKaryawan(employee.id)"
-                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                    >
-                                        delete
-                                    </button>
-                                </td>
-                            </tr>
+                                <!-- BARIS EXPAND (REKAM JEJAK) -->
+                                <tr
+                                    v-if="expandedRow === employee.id"
+                                    class="border-b-2 border-blue-100 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/10"
+                                >
+                                    <!-- colspan="9" karena tabel utama memiliki 9 kolom header -->
+                                    <td colspan="9" class="p-0">
+                                        <!-- Wrapper dengan animasi slide dan padding dalam -->
+                                        <div class="px-14 py-6">
+                                            <div
+                                                class="mb-4 flex items-center justify-between"
+                                            >
+                                                <h4
+                                                    class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200"
+                                                >
+                                                    <svg
+                                                        class="h-4 w-4 text-slate-400"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                                        />
+                                                    </svg>
+                                                    Riwayat Pelatihan & Diklat
+                                                </h4>
+                                                <div
+                                                    class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm"
+                                                >
+                                                    Total Jam Akumulasi:
+                                                    <span
+                                                        class="ml-1 text-sm font-bold text-blue-600"
+                                                        >{{
+                                                            employee.total_jam_diklat ||
+                                                            0
+                                                        }}
+                                                        Jam</span
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <!-- Tabel Child (Rekam Jejak) -->
+                                            <div
+                                                class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
+                                            >
+                                                <table class="w-full text-sm">
+                                                    <thead
+                                                        class="bg-slate-50/90 dark:bg-slate-800/90"
+                                                    >
+                                                        <tr
+                                                            class="border-b border-slate-200 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:border-slate-700 dark:text-slate-400"
+                                                        >
+                                                            <th
+                                                                class="px-5 py-3 text-left"
+                                                            >
+                                                                Pelatihan
+                                                            </th>
+                                                            <th
+                                                                class="px-5 py-3 text-left"
+                                                            >
+                                                                Tanggal
+                                                            </th>
+                                                            <th
+                                                                class="px-5 py-3 text-center"
+                                                            >
+                                                                Durasi
+                                                            </th>
+                                                            <th
+                                                                class="px-5 py-3 text-right"
+                                                            >
+                                                                Sumber
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody
+                                                        class="divide-y divide-slate-100 dark:divide-slate-800"
+                                                    >
+                                                        <tr
+                                                            v-for="jejak in employee.rekam_jejak"
+                                                            :key="jejak.id"
+                                                            class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                                        >
+                                                            <td
+                                                                class="px-5 py-3"
+                                                            >
+                                                                <p
+                                                                    class="line-clamp-1 font-medium text-slate-900 dark:text-slate-200"
+                                                                    :title="
+                                                                        jejak.nama_diklat
+                                                                    "
+                                                                >
+                                                                    {{
+                                                                        jejak.nama_diklat
+                                                                    }}
+                                                                </p>
+                                                            </td>
+                                                            <td
+                                                                class="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400"
+                                                            >
+                                                                {{
+                                                                    formatDate(
+                                                                        jejak.tanggal_mulai ||
+                                                                            jejak.tanggal,
+                                                                    )
+                                                                }}
+                                                            </td>
+                                                            <td
+                                                                class="px-5 py-3 text-center whitespace-nowrap"
+                                                            >
+                                                                <div
+                                                                    class="inline-flex items-center justify-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                                                >
+                                                                    {{
+                                                                        jejak.jam
+                                                                    }}
+                                                                    JP
+                                                                </div>
+                                                            </td>
+                                                            <td
+                                                                class="px-5 py-3 text-right whitespace-nowrap"
+                                                            >
+                                                                <span
+                                                                    :class="[
+                                                                        'rounded border px-2 py-1 text-[11px] font-semibold',
+                                                                        getBadgeClass(
+                                                                            jejak.jenis,
+                                                                        ),
+                                                                    ]"
+                                                                >
+                                                                    {{
+                                                                        jejak.jenis
+                                                                    }}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+
+                                                        <!-- State Kosong Jika Tidak Ada Pelatihan -->
+                                                        <tr
+                                                            v-if="
+                                                                !employee
+                                                                    .rekam_jejak
+                                                                    ?.length
+                                                            "
+                                                        >
+                                                            <td
+                                                                colspan="4"
+                                                                class="px-5 py-8 text-center"
+                                                            >
+                                                                <p
+                                                                    class="text-sm text-slate-400 italic"
+                                                                >
+                                                                    Belum ada
+                                                                    riwayat
+                                                                    pelatihan.
+                                                                </p>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
                         </tbody>
                     </table>
 
@@ -1016,79 +1236,5 @@ const getBadgeClass = (jenis: string) => {
                 </div>
             </div>
         </teleport>
-        <!-- Modal Component -->
-        <Modal :show="showModal" @close="showModal = false">
-            <div class="p-6">
-                <div class="mb-6 flex items-start justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800">
-                            {{ selectedKaryawan?.nama_karyawan }}
-                        </h2>
-                        <p class="text-sm text-slate-500">
-                            NRP: {{ selectedKaryawan?.nrp }}
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-2xl font-black text-blue-600">
-                            {{ selectedKaryawan?.total_jam_diklat }}
-                        </div>
-                        <div
-                            class="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
-                        >
-                            Total Jam Akumulasi
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    class="max-h-[400px] overflow-y-auto rounded-xl border border-slate-100"
-                >
-                    <table class="w-full text-xs">
-                        <thead class="sticky top-0 bg-slate-50">
-                            <tr
-                                class="text-[9px] font-bold text-slate-500 uppercase"
-                            >
-                                <th class="px-4 py-3 text-left">Pelatihan</th>
-                                <th class="px-4 py-3 text-left">Tanggal</th>
-                                <th class="px-4 py-3 text-center">Jam</th>
-                                <th class="px-4 py-3 text-right">Sumber</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-50">
-                            <tr
-                                v-for="jejak in selectedKaryawan?.rekam_jejak"
-                                :key="jejak.id"
-                                class="hover:bg-slate-50/50"
-                            >
-                                <td
-                                    class="px-4 py-3 font-semibold text-slate-700"
-                                >
-                                    {{ jejak.nama_diklat }}
-                                </td>
-                                <td class="px-4 py-3 text-slate-500">
-                                    {{ formatDate(jejak.tanggal_mulai || jejak.tanggal) }}
-                                </td>
-                                <td class="px-4 py-3 text-center font-bold">
-                                    {{ jejak.jam }}
-                                </td>
-                                <td class="px-4 py-3 text-right">
-                                    <span :class="getBadgeClass(jejak.jenis)">
-                                        {{ jejak.jenis }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr v-if="!selectedKaryawan?.rekam_jejak?.length">
-                                <td
-                                    colspan="4"
-                                    class="py-8 text-center text-slate-400 italic"
-                                >
-                                    Belum ada rekam jejak diklat yang disetujui.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </Modal>
     </AppLayout>
 </template>

@@ -35,8 +35,9 @@ class MasterDataController extends Controller
                 ]);
 
                 // 2. Data dari HLC
+                // ubah relasinya jika tidak menggunakan upload
                 $hlc = $karyawan->diklatHlc->where('status', 'approved')->map(fn($d) => [
-                    'nama_diklat' => $d->nama_diklat,
+                    'nama_diklat' => $d->hlc->nama_program,
                     'tanggal_mulai' => $d->tanggal_mulai,
                     'jam' => $d->jam_diklat,
                     'jenis' => 'HLC'

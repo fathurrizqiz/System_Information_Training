@@ -550,9 +550,9 @@ class DashboardController extends Controller
         $diklatHLC = HLCManajement::where('nrp', $nrp)
             ->whereYear('tanggal_mulai', $yearNow)
             ->where('status', 'approved')
-            ->get(['nama_diklat', 'tanggal_mulai', 'jam_diklat', 'penyelenggara'])
+            ->get(['nama_diklat','program_id', 'tanggal_mulai', 'jam_diklat', 'penyelenggara'])
             ->map(fn($d) => [
-                'nama_diklat' => $d->nama_diklat,
+                'nama_diklat' => $d->hlc->nama_program,
                 'tanggal' => $d->tanggal_mulai,
                 'jam' => $d->jam_diklat,
                 'penyelenggara' => $d->penyelenggara,
