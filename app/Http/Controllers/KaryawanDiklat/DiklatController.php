@@ -157,8 +157,8 @@ class DiklatController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tanggal_mulai' => 'required|date|after_or_equal:today',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
             'nama_diklat' => 'required|string|max:255',
             'evaluasimateri' => 'nullable|string|max:255',
             'evaluasipengajar' => 'nullable|string|max:255',
@@ -168,6 +168,7 @@ class DiklatController extends Controller
             'jam_diklat' => 'required|integer|min:1',
             'file' => 'required|file|mimes:pdf|max:2048',
         ]);
+        // dd($validated);
 
         $tanggalMulai = Carbon::parse($validated['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validated['tanggal_selesai']);
