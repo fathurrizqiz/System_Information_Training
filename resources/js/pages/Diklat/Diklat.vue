@@ -469,10 +469,10 @@ const lihatDokumen = (dokumen: string) => {
                                 <option value="/JadwalDiklat/Internal">
                                     Internal
                                 </option>
-                                <option value="/JadwalDiklat/Eksternal">
+                                <option value="/JadwalDiklat/Internal">
                                     Eksternal
                                 </option>
-                                <option value="/JadwalDiklat/HLC">HLC</option>
+                                <option value="/JadwalDiklat/Internal">HLC</option>
                             </select>
 
                             <button
