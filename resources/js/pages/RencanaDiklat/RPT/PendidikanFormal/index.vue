@@ -287,7 +287,7 @@ const kirimNotifikasi = (id: number, tipe: string) => {
                 <h1
                     class="text-xl font-bold tracking-tight text-white drop-shadow-lg md:text-3xl"
                 >
-                    Pendidikan Formal
+                    Diklat Internal
                 </h1>
                 <p
                     class="mt-2 translate-y-4 transform text-sm text-gray-200 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:text-base"

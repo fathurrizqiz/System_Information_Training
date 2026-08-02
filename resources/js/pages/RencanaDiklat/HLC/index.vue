@@ -1073,7 +1073,7 @@ const kirimNotifikasiHLC = (id: number, tipe: string) => {
                                     <!-- <p v-if="form.errors.dokumen" class="text-red-500 text-xs mt-1">{{ form.errors.dokumen }}</p> -->
                                 </div>
                                 <!-- Nama Diklat -->
-                                <!-- <div class="sm:col-span-2">
+                                <div class="sm:col-span-2">
                                     <label
                                         class="mb-1 block text-sm font-medium text-slate-700"
                                         >Nama Diklat</label
@@ -1097,7 +1097,7 @@ const kirimNotifikasiHLC = (id: number, tipe: string) => {
                                         type="text"
                                         class="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm placeholder-slate-400 transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                     />
-                                </div> -->
+                                </div>
 
                                 <!-- Jam Diklat -->
                                 <div>

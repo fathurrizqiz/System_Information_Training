@@ -101,7 +101,7 @@ class HLCController extends Controller
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nrp' => 'nullable|string|max:255',
             'jam_diklat' => 'nullable|integer',
-            'dokumen' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
+            'dokumen' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
         ], [
             // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
             'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
@@ -177,7 +177,7 @@ class HLCController extends Controller
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nrp' => 'nullable|string|max:255',
             'jam_diklat' => 'nullable|integer', // Ini adalah jam per hari dari input
-            'dokumen' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
+            'dokumen' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg|max:2048'
         ], [
             // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
             'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
