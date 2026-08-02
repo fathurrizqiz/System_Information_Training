@@ -183,26 +183,26 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                 <label class="block text-sm font-medium text-gray-700"
                     >Evaluasi Materi</label
                 >
-                <Input
-                    id="keterangan"
-                    rows="3"
-                    type="text"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    v-model="form.evaluasimateri"
-                />
+                
+                <select v-model="form.evaluasimateri" id="">
+                    <option value="">Evaluasi Pengajar</option> 
+                    <option value="Bagus">Bagus</option> 
+                    <option value="Lumayan">Lumayan</option>
+                    <option value="kurang">Kurang</option>
+                </select>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700"
                     >Evaluasi Pengajar</label
                 >
-                <Input
-                    id="keterangan"
-                    rows="3"
-                    type="text"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    v-model="form.evaluasipengajar"
-                />
+                
+                <select v-model="form.evaluasipengajar" id="">
+                    <option value="">Evaluasi Pengajar</option> 
+                    <option value="Bagus">Bagus</option> 
+                    <option value="Lumayan">Lumayan</option>
+                    <option value="kurang">Kurang</option>
+                </select>
             </div>
 
             <div>

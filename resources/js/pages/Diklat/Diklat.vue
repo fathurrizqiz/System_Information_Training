@@ -153,6 +153,7 @@ const filterDateFrom = ref(props.filters.date_from || '');
 const filterDateTo = ref(props.filters.date_to || '');
 const filterStatus = ref(props.filters.status || '');
 const filterSource = ref(props.filters.source || '');
+const perPage = ref(props.diklat.per_page || 10);
 
 // Swipe state for mobile
 const currentIndex = ref(0);
@@ -197,6 +198,7 @@ function applyFilters() {
             date_to: filterDateTo.value || undefined,
             status: filterStatus.value || undefined,
             source: filterSource.value || undefined,
+            per_page: perPage.value,
         },
         {
             preserveState: true,
@@ -439,6 +441,17 @@ const lihatDokumen = (dokumen: string) => {
                         </div>
 
                         <div class="flex gap-2">
+                            <select
+                                v-model.number="perPage"
+                                @change="applyFilters"
+                                aria-label="Jumlah data per halaman"
+                                class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                            >
+                                <option :value="10">10 / halaman</option>
+                                <option :value="25">25 / halaman</option>
+                                <option :value="50">50 / halaman</option>
+                            </select>
+
                             <button
                                 @click="toggleFilters"
                                 class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"

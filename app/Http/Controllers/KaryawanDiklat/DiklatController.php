@@ -47,7 +47,13 @@ class DiklatController extends Controller
         $filterDateTo = $request->input('date_to');
         $filterStatus = $request->input('status');
         $filterSource = $request->input('source'); // user, admin, eksternal
-        $perPage = $request->input('per_page', 10);
+        // Batasi ukuran halaman di server agar parameter query tidak dapat
+        // memaksa pengambilan data dalam jumlah besar.
+        $allowedPerPage = [10, 25, 50];
+        $requestedPerPage = $request->integer('per_page', 10);
+        $perPage = in_array($requestedPerPage, $allowedPerPage, true)
+            ? $requestedPerPage
+            : 10;
 
         // === Diklat Karyawan (User Input) ===
         $diklatQuery = DiklatKaryawan::where('nrp', $karyawan->nrp);

@@ -39,14 +39,16 @@ class ReportController extends Controller
             ->leftJoin('target_jam_datamaster', 'karyawans.klinis_non_klinis', '=', 'target_jam_datamaster.kategori')
             ->select(
                 'karyawans.bagian',
+                'karyawans.unit_kerja',
                 'karyawans.nrp',
                 'karyawans.nama_karyawan',
                 \DB::raw('SUM(COALESCE(rekap_jam_diklat.total_jam, 0)) as jam_aktual'),
                 \DB::raw('MAX(target_jam_datamaster.target_jam) as target_dasar')
             )
-            ->groupBy('karyawans.bagian', 'karyawans.nrp', 'karyawans.nama_karyawan')
+            ->groupBy('karyawans.bagian', 'karyawans.unit_kerja', 'karyawans.nrp', 'karyawans.nama_karyawan')
             ->get()
-            ->groupBy('bagian'); // Kelompokkan berdasarkan bagian agar mudah di-map
+            ->groupBy('bagian')
+            ->map(fn ($karyawans) => $karyawans->groupBy(fn ($karyawan) => $karyawan->unit_kerja ?: 'Tanpa Unit Kerja'));
 
         // 3. Ambil Target per Bagian
         $queryTarget = Karyawans::leftJoin('target_jam_datamaster', 'karyawans.klinis_non_klinis', '=', 'target_jam_datamaster.kategori')
@@ -65,17 +67,25 @@ class ReportController extends Controller
             $targetTotal = $row->total_target_jam_dasar * $countSelectedMonths;
             $aktual = $aktualPerBagian[$row->bagian] ?? 0;
 
-            // Ambil detail karyawan untuk bagian ini
-            $listKaryawan = collect($karyawanDetail->get($row->bagian))->map(function ($k) use ($countSelectedMonths) {
-                $t_individu = $k->target_dasar * $countSelectedMonths;
-                return [
-                    'nrp' => $k->nrp,
-                    'nama' => $k->nama_karyawan,
-                    'aktual' => (float) $k->jam_aktual,
-                    'target' => round($t_individu, 2),
-                    'persentase' => $t_individu > 0 ? round(($k->jam_aktual / $t_individu) * 100, 2) : 0
-                ];
-            });
+            // Kelompokkan karyawan dalam bagian ini berdasarkan unit kerja.
+            $listUnitKerja = collect($karyawanDetail->get($row->bagian, collect()))
+                ->map(function ($karyawans, $unitKerja) use ($countSelectedMonths) {
+                    return [
+                        'unitKerja' => $unitKerja,
+                        'karyawans' => $karyawans->map(function ($k) use ($countSelectedMonths) {
+                            $t_individu = $k->target_dasar * $countSelectedMonths;
+
+                            return [
+                                'nrp' => $k->nrp,
+                                'nama' => $k->nama_karyawan,
+                                'aktual' => (float) $k->jam_aktual,
+                                'target' => round($t_individu, 2),
+                                'persentase' => $t_individu > 0 ? round(($k->jam_aktual / $t_individu) * 100, 2) : 0,
+                            ];
+                        })->values(),
+                    ];
+                })
+                ->values();
 
             return [
                 'kategori' => $row->bagian,
@@ -83,7 +93,7 @@ class ReportController extends Controller
                 'totalTargetJam' => round($targetTotal, 2),
                 'aktualJam' => (float) $aktual,
                 'persentase' => $targetTotal > 0 ? round(($aktual / $targetTotal) * 100, 2) : 0,
-                'karyawans' => $listKaryawan // Inilah data drill-down nya
+                'unitKerjas' => $listUnitKerja,
             ];
         });
 

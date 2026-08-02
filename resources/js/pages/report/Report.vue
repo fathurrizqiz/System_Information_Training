@@ -11,9 +11,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- INTERFACES (Tetap sama) ---
 interface Filters { months: number[]; year: number; bagian: string; }
-interface TargetKategori { kategori: string; totalKaryawan: number; targetPerOrang: number; totalTargetJam: number; aktualJam: number; persentase: number; karyawans: KaryawanDetail[]; }
+interface TargetKategori { kategori: string; totalKaryawan: number; targetPerOrang: number; totalTargetJam: number; aktualJam: number; persentase: number; unitKerjas: UnitKerja[]; }
 interface DetailRiwayat { id: number; tanggal: string; nama_diklat: string; jam: number; }
 interface KaryawanDetail { nrp: string; nama: string; aktual: number; target: number; persentase: number; detail_diklat?: DetailRiwayat[]; }
+interface UnitKerja { unitKerja: string; karyawans: KaryawanDetail[]; }
 
 const props = defineProps<{ filters: Filters; totalPerKategori: TargetKategori[]; totalJamDiklat: number; targetAll: number; }>();
 
@@ -28,6 +29,7 @@ const listBulan = [
 const selectedMonths = ref<number[]>(props.filters.months);
 const searchBagian = ref<string>(props.filters.bagian || '');
 const expandedRows = ref<string[]>([]);
+const expandedUnitKerjas = ref<string[]>([]);
 const expandedKaryawan = ref<string | null>(null);
 
 const applyFilter = () => {
@@ -49,7 +51,7 @@ function generateExcel() {
 // --- MODERN CHART OPTIONS ---
 const chartStatusSeries = computed(() => {
     let tuntas = 0, belum = 0;
-    props.totalPerKategori.forEach(kat => kat.karyawans.forEach(k => k.persentase >= 100 ? tuntas++ : belum++));
+    props.totalPerKategori.forEach(kat => kat.unitKerjas.forEach(unit => unit.karyawans.forEach(k => k.persentase >= 100 ? tuntas++ : belum++)));
     return [tuntas, belum];
 });
 
@@ -76,6 +78,11 @@ const chartRankingOptions = computed(() => ({
 
 const toggleRow = (kategori: string) => {
     expandedRows.value.includes(kategori) ? expandedRows.value = expandedRows.value.filter(i => i !== kategori) : expandedRows.value.push(kategori);
+};
+const unitKerjaKey = (kategori: string, unitKerja: string) => `${kategori}::${unitKerja}`;
+const toggleUnitKerja = (kategori: string, unitKerja: string) => {
+    const key = unitKerjaKey(kategori, unitKerja);
+    expandedUnitKerjas.value.includes(key) ? expandedUnitKerjas.value = expandedUnitKerjas.value.filter(i => i !== key) : expandedUnitKerjas.value.push(key);
 };
 const toggleKaryawan = (nrp: string) => {
     expandedKaryawan.value = expandedKaryawan.value === nrp ? null : nrp;
@@ -204,7 +211,18 @@ const toggleKaryawan = (nrp: string) => {
                     <!-- Expanded Content: Modern List -->
                     <div v-if="expandedRows.includes(item.kategori)" class="border-t border-slate-100 bg-slate-50/50 p-5">
                         <div class="space-y-3">
-                            <div v-for="karyawan in item.karyawans" :key="karyawan.nrp" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
+                            <div v-for="unit in item.unitKerjas" :key="unit.unitKerja" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <!-- Header Unit Kerja (Clickable) -->
+                                <div @click="toggleUnitKerja(item.kategori, unit.unitKerja)" class="flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-slate-50">
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-800">{{ unit.unitKerja }}</p>
+                                        <p class="text-xs text-slate-500">{{ unit.karyawans.length }} Karyawan</p>
+                                    </div>
+                                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': expandedUnitKerjas.includes(unitKerjaKey(item.kategori, unit.unitKerja)) }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+
+                                <div v-if="expandedUnitKerjas.includes(unitKerjaKey(item.kategori, unit.unitKerja))" class="space-y-3 border-t border-slate-100 bg-slate-50/50 p-4">
+                                    <div v-for="karyawan in unit.karyawans" :key="karyawan.nrp" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
                                 
                                 <!-- Baris Utama Karyawan -->
                                 <div @click="toggleKaryawan(karyawan.nrp)" class="flex cursor-pointer items-center justify-between">
@@ -247,6 +265,8 @@ const toggleKaryawan = (nrp: string) => {
                                     </div>
                                     <div v-else class="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs italic text-slate-400">
                                         Belum ada riwayat diklat pada periode ini.
+                                    </div>
+                                </div>
                                     </div>
                                 </div>
                             </div>
