@@ -55,8 +55,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/Persetujuan/HLC', [HLCAdminController::class, 'index'])->name('persetujuan.hlc');
         Route::put('/Persetujuan/HLC/konfirmasi/{id}', [HLCController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.hlc');
 
-        // halaman lihat Internal
-        Route::get('/DiklatInternal/user', [InternalController::class, 'index'])->name('diklat.internal.index');
+
 
         // Appprove HLC dan Eksternal
         Route::get('/Approve/Diklat', [ApprovDiklateController::class, 'index'])->name('diklat.approve.index');
@@ -105,8 +104,7 @@ Route::middleware(['auth'])->group(function () {
         // Template Pembahasan Sertifikat
         Route::get('/DiklatInternal/detail/pembahasan/template/{periode}', [SertifikatController::class, 'template']);
         Route::post('/DiklatInternal/detail/pembahasan/template/store', [SertifikatController::class, 'storeTemplate']);
-        Route::post('/sertifikat/generate/{peserta}', [SertifikatController::class, 'generate']);
-        Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'download']);
+
 
         // Dokumentasi
         Route::get('/DetailInternal/Dokumentasi/view/{periode_id}', [DokumentasiController::class, 'index']);
@@ -158,13 +156,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/diklat-hlc/upload-bukti/{id}', [HLCController::class, 'uploadBuktiHLC'])->name('diklat.hlc.upload-bukti');
 
         // penggajuan diklat
-        Route::get('/Diklat', [DiklatController::class, 'index'])->name('diklat.home');
-        Route::get('/Diklat/create', [DiklatController::class, 'create'])->name('diklat.create');
-        Route::post('/Diklat/store', [DiklatController::class, 'store'])->name('diklat.store');
-        Route::get('/Diklat/pdf/preview/{id}', [DiklatController::class, 'preview'])->name('diklat.preview');
-        Route::get('/Diklat/edit/{id}', [DiklatController::class, 'edit'])->name('diklat.edit');
-        Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('diklat.update');
-        Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
+
         // Master Data
         Route::get('/MasterData/home', [MasterDataController::class, 'index'])->name('masterdata.home');
         Route::get('/MasterData/create', [MasterDataController::class, 'pages']);
@@ -194,6 +186,23 @@ Route::middleware(['auth'])->group(function () {
 
     // dashboard user
     Route::get('/dashboard/user', [DashboardController::class, 'dashboardUser'])->middleware(['auth', 'verified'])->name('dashboard.user');
+
+    // pengajuan diklat
+    Route::get('/Diklat', [DiklatController::class, 'index'])->name('diklat.home');
+    Route::get('/Diklat/create', [DiklatController::class, 'create'])->name('diklat.create');
+    Route::post('/Diklat/store', [DiklatController::class, 'store'])->name('diklat.store');
+    Route::get('/Diklat/pdf/preview/{id}', [DiklatController::class, 'preview'])->name('diklat.preview');
+    Route::get('/Diklat/edit/{id}', [DiklatController::class, 'edit'])->name('diklat.edit');
+    Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('diklat.update');
+    Route::delete('/Diklat/destroy/{id}', [DiklatController::class, 'destroy'])->name('diklat.destroy');
+
+    // halaman lihat Internal
+    Route::get('/DiklatInternal/user', [InternalController::class, 'index'])->name('diklat.internal.index');
+
+    // download setifikat internal
+    Route::post('/sertifikat/generate/{peserta}', [SertifikatController::class, 'generate']);
+    Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'download']);
+
     //Materi Diklat
     Route::get('/Materi', [MateriController::class, 'index']);
     Route::get('/Materi/folder/{folderId}', [MateriController::class, 'index']);
@@ -226,7 +235,7 @@ Route::middleware(['auth'])->group(function () {
     // impersonate response user
     Route::post('/impersonation/respond/{requestId}', [InboxController::class, 'respondImpersonate'])->name('impersonation.respond');
 
-    
+
 });
 
 require __DIR__ . '/settings.php';

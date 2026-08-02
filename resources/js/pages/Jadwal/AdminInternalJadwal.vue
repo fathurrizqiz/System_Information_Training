@@ -364,7 +364,7 @@ const absenHariIniHLC = (hlc: any) => {
                 </div>
             </div>
             <div class="flex gap-3">
-                <button
+                <button v-if="roles.includes('admin_diklat')"
                     @click="goHP"
                     class="flex w-48 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >

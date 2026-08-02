@@ -11,12 +11,28 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- INTERFACES (Tetap sama) ---
 interface Filters { months: number[]; year: number; bagian: string; }
-interface TargetKategori { kategori: string; totalKaryawan: number; targetPerOrang: number; totalTargetJam: number; aktualJam: number; persentase: number; unitKerjas: UnitKerja[]; }
+interface TargetKategori { kategori: string; totalKaryawan: number; targetPerOrang: number; totalTargetJam: number; aktualJam: number; persentase: number; unitKerjas?: UnitKerja[]; karyawans?: KaryawanDetail[]; }
 interface DetailRiwayat { id: number; tanggal: string; nama_diklat: string; jam: number; }
 interface KaryawanDetail { nrp: string; nama: string; aktual: number; target: number; persentase: number; detail_diklat?: DetailRiwayat[]; }
 interface UnitKerja { unitKerja: string; karyawans: KaryawanDetail[]; }
 
 const props = defineProps<{ filters: Filters; totalPerKategori: TargetKategori[]; totalJamDiklat: number; targetAll: number; }>();
+
+const laporanPerBagian = computed(() => props.totalPerKategori.map((bagian) => {
+    const unitKerjas = Array.isArray(bagian.unitKerjas)
+        ? bagian.unitKerjas.filter((unit): unit is UnitKerja => Array.isArray(unit?.karyawans))
+        : [];
+
+    return {
+        ...bagian,
+        // Kompatibilitas data lama: Bagian -> Karyawan.
+        unitKerjas: unitKerjas.length > 0
+            ? unitKerjas
+            : Array.isArray(bagian.karyawans)
+                ? [{ unitKerja: 'Tanpa Unit Kerja', karyawans: bagian.karyawans }]
+                : [],
+    };
+}));
 
 // --- STATE & LOGIC ---
 const listBulan = [
@@ -51,7 +67,7 @@ function generateExcel() {
 // --- MODERN CHART OPTIONS ---
 const chartStatusSeries = computed(() => {
     let tuntas = 0, belum = 0;
-    props.totalPerKategori.forEach(kat => kat.unitKerjas.forEach(unit => unit.karyawans.forEach(k => k.persentase >= 100 ? tuntas++ : belum++)));
+    laporanPerBagian.value.forEach(kat => kat.unitKerjas.forEach(unit => unit.karyawans.forEach(k => k.persentase >= 100 ? tuntas++ : belum++)));
     return [tuntas, belum];
 });
 
@@ -60,16 +76,16 @@ const chartStatusOptions = computed(() => ({
     labels: ['Tuntas', 'Belum Tuntas'],
     colors: ['#10B981', '#F59E0B'],
     stroke: { show: false },
-    plotOptions: { donut: { size: '75%', labels: { show: true, total: { show: true, label: 'Karyawan', formatter: () => props.totalPerKategori.reduce((acc, curr) => acc + curr.totalKaryawan, 0) } } } },
+    plotOptions: { donut: { size: '75%', labels: { show: true, total: { show: true, label: 'Karyawan', formatter: () => laporanPerBagian.value.reduce((acc, curr) => acc + curr.totalKaryawan, 0) } } } },
     dataLabels: { enabled: false },
     legend: { show: false }
 }));
 
-const chartRankingSeries = computed(() => [{ name: 'Jam', data: props.totalPerKategori.map(item => item.aktualJam) }]);
+const chartRankingSeries = computed(() => [{ name: 'Jam', data: laporanPerBagian.value.map(item => item.aktualJam) }]);
 const chartRankingOptions = computed(() => ({
     chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
     plotOptions: { bar: { horizontal: true, borderRadius: 8, barHeight: '60%' } },
-    xaxis: { categories: props.totalPerKategori.map(i => i.kategori), axisBorder: { show: false }, axisTicks: { show: false } },
+    xaxis: { categories: laporanPerBagian.value.map(i => i.kategori), axisBorder: { show: false }, axisTicks: { show: false } },
     yaxis: { labels: { style: { fontWeight: 600, fontSize: '12px' } } },
     grid: { show: false },
     colors: ['#6366F1'],
@@ -177,11 +193,11 @@ const toggleKaryawan = (nrp: string) => {
             <div class="space-y-4">
                 <h3 class="px-2 text-lg font-bold text-slate-800">Rincian Per Bagian</h3>
                 
-                <div v-if="totalPerKategori.length === 0" class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
+                <div v-if="laporanPerBagian.length === 0" class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
                     Tidak ada data untuk filter yang dipilih.
                 </div>
 
-                <div v-for="(item, index) in totalPerKategori" :key="index" class="group overflow-hidden rounded-3xl border border-slate-200/60 bg-white shadow-sm transition-all hover:shadow-md">
+                <div v-for="(item, index) in laporanPerBagian" :key="index" class="group overflow-hidden rounded-3xl border border-slate-200/60 bg-white shadow-sm transition-all hover:shadow-md">
                     <!-- Header Bagian (Clickable) -->
                     <div @click="toggleRow(item.kategori)" class="cursor-pointer p-5 transition-colors hover:bg-slate-50/80">
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
