@@ -38,7 +38,7 @@ function submit() {
         return;
     }
 
-    router.post(route('diklat.store'), form, {
+    router.post(route('diklat.web.store'), form, {
         onSuccess: () => {
             toast.success('Data Berhasil Disimpan!');
         },
@@ -184,8 +184,8 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                     >Evaluasi Materi</label
                 >
                 
-                <select v-model="form.evaluasimateri" id="">
-                    <option value="">Evaluasi Pengajar</option> 
+                <select class="w-36 h-10 border" v-model="form.evaluasimateri" id="">
+                    <option value="">Evaluasi Materi</option> 
                     <option value="Bagus">Bagus</option> 
                     <option value="Lumayan">Lumayan</option>
                     <option value="kurang">Kurang</option>
@@ -197,7 +197,7 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                     >Evaluasi Pengajar</label
                 >
                 
-                <select v-model="form.evaluasipengajar" id="">
+                <select class="w-42 h-10 border" v-model="form.evaluasipengajar" id="">
                     <option value="">Evaluasi Pengajar</option> 
                     <option value="Bagus">Bagus</option> 
                     <option value="Lumayan">Lumayan</option>

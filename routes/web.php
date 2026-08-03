@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Evaluasi\EvaluasiController;
 use App\Http\Controllers\Inbox\InboxController;
@@ -46,8 +45,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin_diklat|super-admin'])->group(function () {
         // admin
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        // Persetujuan
-// Eksternal
+
+        // Eksternal
         Route::get('/Persetujuan', [EksternalAdminController::class, 'Persetujuan'])->name('persetujuan.index');
         Route::get('/Persetujuan/Eksternal', [EksternalAdminController::class, 'EksternalAdmin'])->name('persetujuan.eksternal');
         Route::put('/Persetujuan/Eksternal/konfirmasi/{id}', [NonFormalController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.eksternal');
@@ -190,7 +189,7 @@ Route::middleware(['auth'])->group(function () {
     // pengajuan diklat
     Route::get('/Diklat', [DiklatController::class, 'index'])->name('diklat.home');
     Route::get('/Diklat/create', [DiklatController::class, 'create'])->name('diklat.create');
-    Route::post('/Diklat/store', [DiklatController::class, 'store'])->name('diklat.store');
+    Route::post('/Diklat/store', [DiklatController::class, 'store'])->name('diklat.web.store');
     Route::get('/Diklat/pdf/preview/{id}', [DiklatController::class, 'preview'])->name('diklat.preview');
     Route::get('/Diklat/edit/{id}', [DiklatController::class, 'edit'])->name('diklat.edit');
     Route::put('/Diklat/update/{id}', [DiklatController::class, 'update'])->name('diklat.update');
