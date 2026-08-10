@@ -48,7 +48,7 @@ const approvalMenus = ref([
         }
     },
     {
-        title: 'Diklat Eksternal',
+        title: 'Workshop/Seminar Eksternal',
         description: 'Pengajuan untuk mengikuti pelatihan, seminar, atau workshop yang diselenggarakan oleh pihak ketiga.',
         icon: 'globe',
         routeName: 'persetujuan.eksternal',
