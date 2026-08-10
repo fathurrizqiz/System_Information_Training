@@ -1,9 +1,9 @@
 <template>
     <div
-        class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-slate-100 to-cyan-50 px-4"
+        class="flex min-h-screen flex-col items-center justify-center bg-gradient-to-r from-slate-100 to-cyan-50 px-4"
     >
         <!-- Logo -->
-        <div class="mb-10 mt-10 gap-5 flex items-center">
+        <div class="mt-10 mb-10 flex items-center gap-5">
             <img
                 src="/icon_baru.png"
                 alt="Logo"
@@ -11,33 +11,28 @@
             />
 
             <h1
-                class="mt-3 text-6xl font-bold bg-gradient-to-r from-blue-700 to-cyan-400 bg-clip-text text-transparent"
+                class="mt-3 bg-gradient-to-r from-blue-700 to-cyan-400 bg-clip-text text-6xl font-bold text-transparent"
             >
                 Eichar
             </h1>
         </div>
 
         <!-- Login Card -->
-        <div
-            class="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl"
-        >
+        <div class="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl">
             <div class="text-center">
-                <h2 class="text-4xl font-bold text-slate-900">
-                    Welcome back
-                </h2>
+                <h2 class="text-4xl font-bold text-slate-900">Welcome back</h2>
 
                 <p class="mt-2 text-slate-500">
                     Sign in to access your Eichar workspace
                 </p>
             </div>
 
-            <form
-                @submit.prevent="handleLogin"
-                class="mt-10 space-y-6"
-            >
+            <form @submit.prevent="handleLogin" class="mt-10 space-y-6">
                 <!-- NRP -->
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-slate-700">
+                    <label
+                        class="mb-2 block text-sm font-medium text-slate-700"
+                    >
                         NRP
                     </label>
 
@@ -45,7 +40,7 @@
                         v-model="form.nrp"
                         type="text"
                         placeholder="Enter your Employee ID"
-                        class="w-full text-black rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:outline-none"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-black focus:border-blue-500 focus:outline-none"
                     />
 
                     <div
@@ -58,16 +53,19 @@
 
                 <!-- Password -->
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-slate-700">
+                    <label
+                        class="mb-2 block text-sm font-medium text-slate-700"
+                    >
                         Password
                     </label>
 
                     <input
                         v-model="form.password"
-                        type="password"
+                        :type="showPassword ? 'text' : 'password'"
                         placeholder="Enter Password"
-                        class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:outline-none"
-                    />
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 focus:border-blue-500 focus:outline-none"
+                        />
+                        
 
                     <div
                         v-if="form.errors.password"
@@ -80,8 +78,8 @@
                 <!-- Remember -->
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2">
-                        <input type="checkbox" />
-                        Remember me
+                        <input @click="showPassword = !showPassword" type="checkbox" />
+                        Lihat Password
                     </label>
 
                     <a
@@ -98,11 +96,7 @@
                     :disabled="form.processing"
                     class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 py-3 font-semibold text-white shadow-lg transition hover:scale-[1.01]"
                 >
-                    {{
-                        form.processing
-                            ? 'Signing in...'
-                            : 'Sign in →'
-                    }}
+                    {{ form.processing ? 'Signing in...' : 'Sign in →' }}
                 </button>
             </form>
         </div>
@@ -114,10 +108,14 @@
             Developed & maintained by Fathur.
         </div>
     </div>
+    <div>
+
+    </div>
 </template>
 
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const form = useForm({
@@ -139,4 +137,6 @@ const handleLogin = () => {
         },
     });
 };
+
+const showPassword = ref(false);
 </script>

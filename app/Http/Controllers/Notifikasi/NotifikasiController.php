@@ -245,8 +245,6 @@ class NotifikasiController extends Controller
 
     public function sendWhatsappEksternal(Request $request)
     {
-
-
         $idJadwal = $request->id;
         $slugDicari = $request->template_slug;
 
