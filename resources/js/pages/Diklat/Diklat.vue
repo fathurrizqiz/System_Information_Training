@@ -480,7 +480,7 @@ const lihatDokumen = (dokumen: string) => {
                                 class="flex w-28 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                             >
                                 <svg
-                                    class="h-5 w-5"
+                                    class=" h-5 w-5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('unit_kerja', 50)->nullable();
             $table->string('posisi_jabatan', 50)->nullable();
             $table->string('klinis_non_klinis', 50)->nullable();
-            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
+            $table->string('jenis_kelamin', 10)->nullable();
             // $table->timestamps();
         });
     }

@@ -22,10 +22,7 @@ return new class extends Migration {
             $table->date('periode_mulai');
             $table->date('periode_selesai')->nullable();
 
-            $table->enum('status', [
-                'pending',
-                'tercapai'
-            ])->default('pending');
+            $table->string('status', 20)->default('pending');
 
             $table->timestamp('tanggal_promosi')->nullable();
 

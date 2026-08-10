@@ -80,30 +80,30 @@ class NotifikasiController extends Controller
 
             try {
 
-                $response = Http::withoutVerifying()
-                    ->timeout(30)
-                    ->asForm()
-                    ->withHeaders([
-                        'Authorization' => env('FONNTE_TOKEN'),
-                    ])
-                    ->post('https://api.fonnte.com/send', [
-                        'target' => $karyawan->nomor_wa,
-                        'message' => $pesanFinal,
-                    ]);
-
-                Log::info("HTTP Status : " . $response->status());
-                Log::info("Response API : " . $response->body());
-
-                // $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
-                //     ->post('https://api.resend.com/emails', [
-                //         'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
-                //         'to' => [$karyawan->email],
-                //         'subject' => 'Notifikasi Diklat',
-                //         'html' => nl2br($pesanFinal),
+                // $response = Http::withoutVerifying()
+                //     ->timeout(30)
+                //     ->asForm()
+                //     ->withHeaders([
+                //         'Authorization' => env('FONNTE_TOKEN'),
+                //     ])
+                //     ->post('https://api.fonnte.com/send', [
+                //         'target' => $karyawan->nomor_wa,
+                //         'message' => $pesanFinal,
                 //     ]);
 
                 // Log::info("HTTP Status : " . $response->status());
                 // Log::info("Response API : " . $response->body());
+
+                $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
+                    ->post('https://api.resend.com/emails', [
+                        'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
+                        'to' => [$karyawan->email],
+                        'subject' => 'Notifikasi Diklat',
+                        'html' => nl2br($pesanFinal),
+                    ]);
+
+                Log::info("HTTP Status : " . $response->status());
+                Log::info("Response API : " . $response->body());
 
 
                 // WaLog::create([
@@ -196,23 +196,23 @@ class NotifikasiController extends Controller
 
             try {
 
-                // $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
-                //     ->post('https://api.resend.com/emails', [
-                //         'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
-                //         'to' => [$karyawan->email],
-                //         'subject' => 'Notifikasi Diklat',
-                //         'html' => $htmlContent,
-                //     ]);
-                $response = Http::withoutVerifying()
-                    ->timeout(30)
-                    ->asForm()
-                    ->withHeaders([
-                        'Authorization' => env('FONNTE_TOKEN'),
-                    ])
-                    ->post('https://api.fonnte.com/send', [
-                        'target' => $karyawan->nomor_wa,
-                        'message' => $pesanFinal,
+                $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
+                    ->post('https://api.resend.com/emails', [
+                        'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
+                        'to' => [$karyawan->email],
+                        'subject' => 'Notifikasi Diklat',
+                        'html' => $htmlContent,
                     ]);
+                // $response = Http::withoutVerifying()
+                //     ->timeout(30)
+                //     ->asForm()
+                //     ->withHeaders([
+                //         'Authorization' => env('FONNTE_TOKEN'),
+                //     ])
+                //     ->post('https://api.fonnte.com/send', [
+                //         'target' => $karyawan->nomor_wa,
+                //         'message' => $pesanFinal,
+                //     ]);
 
                 // Log::info("HTTP Status : " . $response->status());
                 // Log::info("Response API : " . $response->body());
@@ -297,23 +297,23 @@ class NotifikasiController extends Controller
             ])->render();
 
             try {
-                // $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
-                //     ->post('https://api.resend.com/emails', [
-                //         'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
-                //         'to' => [$karyawan->email],
-                //         'subject' => 'Notifikasi Diklat - ' . ($jadwal->diklat ?? 'Informasi'),
-                //         'html' => $htmlContent, // Gunakan HTML dari render view
-                //     ]);
-                $response = Http::withoutVerifying()
-                    ->timeout(30)
-                    ->asForm()
-                    ->withHeaders([
-                        'Authorization' => env('FONNTE_TOKEN'),
-                    ])
-                    ->post('https://api.fonnte.com/send', [
-                        'target' => $karyawan->nomor_wa,
-                        'message' => $pesanFinal,
+                $response = Http::withoutVerifying()->withToken(env('RESEND_TOKEN'))
+                    ->post('https://api.resend.com/emails', [
+                        'from' => 'Sistem Diklat <noreply@eichar-diklat.my.id>',
+                        'to' => [$karyawan->email],
+                        'subject' => 'Notifikasi Diklat - ' . ($jadwal->diklat ?? 'Informasi'),
+                        'html' => $htmlContent, // Gunakan HTML dari render view
                     ]);
+                // $response = Http::withoutVerifying()
+                //     ->timeout(30)
+                //     ->asForm()
+                //     ->withHeaders([
+                //         'Authorization' => env('FONNTE_TOKEN'),
+                //     ])
+                //     ->post('https://api.fonnte.com/send', [
+                //         'target' => $karyawan->nomor_wa,
+                //         'message' => $pesanFinal,
+                //     ]);
 
                 // WaLog::create([
                 //     'nomor_tujuan'  => $karyawan->nomor_wa,

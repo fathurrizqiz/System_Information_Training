@@ -76,8 +76,8 @@ class NonFormalController extends Controller
             // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
             $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
 
-            // Simpan file ke dalam folder 'public/dokumen_diklat'
-            $path = $file->storeAs('dokumen_diklat', $namaFile, 'public');
+            // Simpan file ke dalam folder 'public/diklat_eksternal'
+            $path = $file->storeAs('diklat_eksternal_', $namaFile, 'public');
 
             // Simpan path/nama file ke array validate untuk dimasukkan ke database
             $validate['dokumen'] = $path;

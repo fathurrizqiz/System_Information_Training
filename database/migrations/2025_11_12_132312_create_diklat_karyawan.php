@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('diklat', 10);
             $table->integer('jam_diklat');
             $table->string('penyelenggara', 50)->nullable();
-            $table->string('file_path')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('file_path', 100)->nullable();
+            $table->string('status', 20)->default('pending');
             $table->text('alasan_penolakan')->nullable();
             $table->timestamps();
         });

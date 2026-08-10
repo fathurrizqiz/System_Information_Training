@@ -188,7 +188,15 @@ class DiklatController extends Controller
         $validated['status'] = 'pending';
 
         if ($request->hasFile('file')) {
-            $validated['file_path'] = $request->file('file')->store('diklat_files', 'public');
+            $file = $request->file('file');
+
+            // 1. Ambil ekstensi asli file (contoh: pdf, docx, jpg)
+            $extension = $file->getClientOriginalExtension();
+
+            // 2. Buat nama file kustom
+            $filename = 'diklat_mandiri_' . time() . '_' . rand(10, 99) . '.' . $extension;
+
+            $validated['file_path'] = $file->storeAs('diklat_files', $filename, 'public');
         }
 
         $diklat = DiklatKaryawan::create($validated);
