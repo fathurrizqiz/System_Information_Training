@@ -49,7 +49,7 @@ const props = defineProps<{
             <!-- Page Header -->
             <div class="flex flex-col gap-2">
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
-                    Evaluasi Pelatihan
+                    EVALUASI PELAKSANAAN DIKLAT INTERNAL
                 </h1>
                 <p class="text-sm text-slate-500 dark:text-slate-400">
                     Pantau ringkasan sentimen program dan rincian evaluasi dari karyawan.

@@ -48,7 +48,7 @@ const approvalMenus = ref([
         }
     },
     {
-        title: 'Workshop/Seminar Eksternal',
+        title: 'Workshop/Seminar Eksternal Rumah Sakit',
         description: 'Pengajuan untuk mengikuti pelatihan, seminar, atau workshop yang diselenggarakan oleh pihak ketiga.',
         icon: 'globe',
         routeName: 'persetujuan.eksternal',
@@ -76,7 +76,7 @@ const goToMenu = (routeName: string) => {
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
             
             <div class="flex flex-col gap-1">
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Pusat Persetujuan Diklat</h1>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Pusat Persetujuan Sertifikat Diklat atau Workshop/Seminar Eksternal Rumah Sakit</h1>
                 <p class="text-sm text-slate-500 dark:text-slate-400">Pilih kategori persetujuan untuk memproses pengajuan diklat karyawan.</p>
             </div>
 

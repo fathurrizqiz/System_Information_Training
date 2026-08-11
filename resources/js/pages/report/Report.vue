@@ -114,7 +114,7 @@ const toggleKaryawan = (nrp: string) => {
             <!-- HEADER MODERN -->
             <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Laporan Diklat</h1>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">DATA BASE DIKLAT KESELURUHAN</h1>
                     <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
                         <span class="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
                         Periode: <span class="font-semibold text-slate-700">{{ teksPeriode }}</span>

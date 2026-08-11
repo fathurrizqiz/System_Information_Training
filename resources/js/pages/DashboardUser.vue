@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { toast } from 'vue3-toastify';
 
 // Interface Data
 interface StatPerTipe {
@@ -33,11 +34,13 @@ interface PendingDiklat {
 }
 
 interface DiklatRincian {
+    id?: number; // Tambahan ID untuk target Generate Sertifikat
     nama_diklat: string;
     tanggal: string;
     jam: number;
     penyelenggara: string;
     jenis: 'Mandiri' | 'Eksternal' | 'HLC' | 'Internal';
+    sertifikat_path?: string | null; // Tambahan path sertifikat
 }
 
 interface BulananData {
@@ -55,7 +58,7 @@ interface StatsJenis {
     internal: { total: number; count: number };
 }
 
-// Definisi Props Resmi (Updated - chartData dihapus, bulanan & statsJenis ditambahkan)
+// Definisi Props Resmi
 const props = defineProps<{
     totalJam: number;
     totalJamBulanan: number;
@@ -84,8 +87,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
 ];
 
-// State untuk modal
-const showModal = ref(false);
+// State untuk Tabel Expandable
 const selectedBulan = ref<BulananData | null>(null);
 
 // HELPER FUNCTIONS
@@ -126,17 +128,34 @@ const getJenisBadgeClass = (jenis: string) => {
     return classes[jenis] || 'bg-slate-100 text-slate-700';
 };
 
-// Fungsi untuk membuka modal
-const openModal = (bulan: BulananData) => {
-    selectedBulan.value = bulan;
-    showModal.value = true;
+// Fungsi untuk membuka/menutup rincian (Pengganti Modal)
+const toggleBulan = (bulan: BulananData) => {
+    if (selectedBulan.value?.bulan === bulan.bulan) {
+        selectedBulan.value = null; // Tutup jika diklik lagi
+    } else {
+        selectedBulan.value = bulan; // Buka rincian
+    }
 };
 
-// Fungsi untuk menutup modal
-const closeModal = () => {
-    showModal.value = false;
-    selectedBulan.value = null;
-};
+// Fungsi Generate Sertifikat
+function generateSertifikat(pesertaId: number | undefined) {
+    if (pesertaId == null || isNaN(pesertaId)) {
+        toast.error('ID peserta tidak valid atau tidak ditemukan');
+        return;
+    }
+    if (!confirm('Generate sertifikat untuk peserta ini?')) return;
+    
+    router.post(`/sertifikat/generate/${pesertaId}`, {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Sertifikat berhasil digenerate!');
+        },
+        onError: (errors) => {
+            const pesanError = errors.message || 'Gagal! Karyawan belum memenuhi syarat atau belum mengikuti pelatihan.';
+            toast.error(pesanError);
+        }
+    });
+}
 
 // Logic Progress Ring Tahunan
 const RING_RADIUS = 40;
@@ -173,6 +192,59 @@ const totalKegiatanAktif = computed(() => {
     const totalDiklatSelesai = props.statsPerTipe.reduce((acc, curr) => acc + curr.count, 0);
     return totalDiklatSelesai + props.pendingDiklat.length;
 });
+
+// EXCEL EXPORT LOGIC
+// --- STATE & FUNGSI UNTUK EXPORT EXCEL ---
+const showExportModal = ref(false);
+const exportType = ref('current'); // 'current', 'all', 'custom'
+const selectedExportMonths = ref<number[]>([]);
+
+const namaBulanIndo = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+const openExportModal = () => {
+    // Reset state saat modal dibuka
+    exportType.value = 'current';
+    selectedExportMonths.value = [];
+    showExportModal.value = true;
+};
+
+const closeExportModal = () => {
+    showExportModal.value = false;
+};
+
+const downloadExcel = () => {
+    let monthsToExport: number[] = [];
+    const currentMonth = new Date().getMonth() + 1;
+
+    if (exportType.value === 'current') {
+        monthsToExport = [currentMonth];
+    } else if (exportType.value === 'all') {
+        monthsToExport = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    } else {
+        monthsToExport = selectedExportMonths.value;
+        if (monthsToExport.length === 0) {
+            toast.warning('Pilih minimal satu bulan untuk diekspor!');
+            return;
+        }
+    }
+
+    // Bangun URL Query Parameter (contoh: ?months[]=1&months[]=2)
+    const params = new URLSearchParams();
+    monthsToExport.forEach(m => params.append('months[]', m.toString()));
+
+    // Gunakan window.location agar browser langsung mengunduh file
+    window.location.href = `/Laporan/Diklat/Export?${params.toString()}`;
+    
+    closeExportModal();
+    toast.info('Laporan sedang diunduh...');
+};
+
+function jadwalTerdekat(){
+    router.get('/JadwalDiklat/Internal');
+}
 </script>
 
 <template>
@@ -344,11 +416,23 @@ const totalKegiatanAktif = computed(() => {
                 </div>
             </div>
 
-            <!-- TABLE BULANAN (REPLACES CHART) -->
+            <!-- TABLE BULANAN (Menghilangkan Modal, Expand Inline) -->
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <h2 class="mb-4 text-base font-bold text-slate-900 dark:text-white">
                     Rekapitulasi Jam Diklat Per Bulan ({{ new Date().getFullYear() }})
                 </h2>
+                
+                <!-- Tombol Buka Modal Export -->
+                    <button 
+                        @click="openExportModal"
+                        class="inline-flex mb-3 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        </svg>
+                        Export Excel
+                    </button>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
@@ -363,13 +447,16 @@ const totalKegiatanAktif = computed(() => {
                             <tr class="border-b border-slate-100 dark:border-slate-800">
                                 <td class="py-3 font-medium text-slate-600 dark:text-slate-400">Total Jam</td>
                                 <td v-for="item in bulanan" :key="item.bulan" class="py-3 text-center">
+                                    <!-- Logika Tombol diubah agar bisa switch aktif/tidak -->
                                     <button 
-                                        @click="openModal(item)"
-                                        class="rounded-lg px-3 py-1.5 font-semibold transition-all"
+                                        @click="item.total_jam > 0 ? toggleBulan(item) : null"
+                                        class="rounded-lg px-3 py-1.5 font-semibold transition-all focus:outline-none"
                                         :class="[
                                             item.total_jam > 0 
-                                                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60' 
-                                                : 'text-slate-400 dark:text-slate-600'
+                                                ? selectedBulan?.bulan === item.bulan
+                                                    ? 'bg-blue-600 text-white shadow-md dark:bg-blue-500'
+                                                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60' 
+                                                : 'text-slate-400 dark:text-slate-600 cursor-default'
                                         ]"
                                     >
                                         {{ item.total_jam }}
@@ -385,50 +472,75 @@ const totalKegiatanAktif = computed(() => {
                         </tbody>
                     </table>
                 </div>
-                <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    * Klik angka total jam untuk melihat rincian diklat di bulan tersebut
-                </p>
-            </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 class="mb-4 text-sm font-bold tracking-wider text-slate-900 uppercase dark:text-white">
-                    Rincian Perkembangan ({{ new Date().getFullYear() }})
-                </h2>
-                <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-                    <div v-for="(stat, index) in statsPerTipe" :key="index" class="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 p-4 transition-colors hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:bg-slate-800">
-                        <div class="flex items-center justify-between">
-                            <div class="rounded-lg p-2 text-white" :class="stat.warna">
-                                <svg v-if="stat.icon === 'globe'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                                </svg>
-                                <svg v-else-if="stat.icon === 'building'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                                </svg>
-                                <svg v-else-if="stat.icon === 'user'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                </svg>
-                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
-                                </svg>
+                <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                    * Klik angka total jam untuk melihat / generate sertifikat di bulan tersebut
+                </p>
+
+                <!-- RINCIAN EXPANDABLE DI BAWAH TABEL -->
+                <div v-if="selectedBulan" class="mt-6 animate-fade-in">
+                    <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-2 dark:border-slate-800">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                            Rincian Bulan {{ selectedBulan.nama_bulan }}
+                        </h3>
+                        <button @click="selectedBulan = null" class="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                            Tutup Rincian
+                        </button>
+                    </div>
+
+                    <div v-if="selectedBulan.rincian.length > 0" class="flex flex-col gap-3">
+                        <div v-for="(diklat, index) in selectedBulan.rincian" :key="index"
+                            class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/50">
+
+                            <!-- Tanggal Badge -->
+                            <div class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-white shadow-sm dark:bg-slate-900">
+                                <span class="text-[10px] font-bold uppercase text-slate-500">{{ new Date(diklat.tanggal).toLocaleDateString('id-ID', { month: 'short' }) }}</span>
+                                <span class="text-lg leading-none font-bold text-slate-700 dark:text-slate-300">{{ new Date(diklat.tanggal).getDate() }}</span>
                             </div>
-                            <span class="text-xs font-bold text-slate-400">{{ stat.count }}x</span>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ stat.total_jam }}</p>
-                            <p class="text-xs font-medium text-slate-500 uppercase">Jam {{ stat.tipe }}</p>
-                        </div>
-                        <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                            <div class="h-full rounded-full transition-all duration-1000" :class="stat.warna" :style="{ width: (totalJam > 0 ? (stat.total_jam / totalJam) * 100 : 0) + '%' }"></div>
+
+                            <!-- Content Info -->
+                            <div class="flex-1">
+                                <div class="mb-1 flex flex-wrap items-center gap-2">
+                                    <h4 class="font-semibold text-slate-900 dark:text-white">{{ diklat.nama_diklat }}</h4>
+                                    <span class="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase" :class="getJenisBadgeClass(diklat.jenis)">
+                                        {{ diklat.jenis }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500">{{ diklat.penyelenggara }} &bull; {{ diklat.jam }} Jam</p>
+                            </div>
+
+                            <!-- Aksi / Generate Sertifikat (HANYA UNTUK INTERNAL) -->
+                            <div class="mt-3 flex items-center gap-2 sm:mt-0" v-if="diklat.jenis === 'Internal'">
+                                <template v-if="diklat.sertifikat_path">
+                                    <a :href="`/storage/${diklat.sertifikat_path}`" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800/50 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Lihat Sertifikat
+                                    </a>
+                                </template>
+                                <template v-else>
+                                    <button @click="generateSertifikat(diklat.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Generate Sertifikat
+                                    </button>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <!-- END RINCIAN EXPANDABLE -->
+
             </div>
 
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- Sisa Grid Jadwal Mendatang dll tetap tidak berubah -->
                 <div class="flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-bold text-slate-900 dark:text-white">Jadwal Mendatang</h2>
-                        <a href="#" class="text-xs font-semibold text-blue-600 hover:text-blue-800">Lihat Semua</a>
+                        <a @click="jadwalTerdekat()" class="cursor-pointer text-xs font-semibold text-blue-600 hover:text-blue-800">Lihat Semua</a>
                     </div>
                     <div v-if="jadwalInternal.length > 0" class="flex flex-col gap-3">
                         <div v-for="item in jadwalInternal" :key="item.id + '-' + item.tipe" class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-800">
@@ -464,7 +576,7 @@ const totalKegiatanAktif = computed(() => {
                 <div class="flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-bold text-slate-900 dark:text-white">Status Pengajuan Diklat</h2>
-                        <a href="#" class="text-xs font-semibold text-blue-600 hover:text-blue-800">Lihat Semua</a>
+                        <a @click="jadwalTerdekat()" class="text-xs font-semibold text-blue-600 hover:text-blue-800">Lihat Semua</a>
                     </div>
                     <div v-if="pendingDiklat.length > 0" class="flex flex-col gap-3">
                         <div v-for="item in pendingDiklat" :key="item.id + '-' + item.tipe" class="flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm transition-all hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-900/20 dark:hover:bg-amber-900/30">
@@ -497,68 +609,71 @@ const totalKegiatanAktif = computed(() => {
                 </div>
             </div>
         </div>
+        <!-- MODAL EXPORT EXCEL -->
+        <div v-if="showExportModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" @click.self="closeExportModal">
+            <div class="w-full max-w-md animate-fade-in overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
+                <div class="border-b border-slate-200 p-5 dark:border-slate-700">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Export Laporan Diklat</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Pilih periode bulan yang ingin diekspor ke format Excel.</p>
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex flex-col gap-3">
+                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+                            <input type="radio" v-model="exportType" value="current" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500">
+                            <span class="font-medium text-slate-700 dark:text-slate-300">Bulan Ini ({{ namaBulanIndo[new Date().getMonth()] }})</span>
+                        </label>
+                        
+                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+                            <input type="radio" v-model="exportType" value="all" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500">
+                            <span class="font-medium text-slate-700 dark:text-slate-300">Semua Bulan (Januari - Desember)</span>
+                        </label>
+                        
+                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+                            <input type="radio" v-model="exportType" value="custom" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500">
+                            <span class="font-medium text-slate-700 dark:text-slate-300">Pilih Bulan Sendiri</span>
+                        </label>
+                    </div>
 
-        <!-- MODAL RINCIAN BULANAN -->
-        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" @click.self="closeModal">
-            <div class="max-h-[100vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
-                <div class="flex items-center justify-between border-b border-slate-200 p-6 dark:border-slate-700">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-                            Rincian Diklat - {{ selectedBulan?.nama_bulan }} {{ new Date().getFullYear() }}
-                        </h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">
-                            Total: {{ selectedBulan?.total_jam }} Jam ({{ selectedBulan?.jumlah_diklat }} diklat)
-                        </p>
+                    <!-- Pilihan Kustom Bulan Muncul Jika 'Pilih Bulan Sendiri' di-klik -->
+                    <div v-if="exportType === 'custom'" class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        <label v-for="(bulan, index) in namaBulanIndo" :key="index" class="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-50 p-2 text-sm transition-colors hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
+                            <input type="checkbox" v-model="selectedExportMonths" :value="index + 1" class="rounded text-emerald-600 focus:ring-emerald-500">
+                            <span class="text-slate-700 dark:text-slate-300">{{ bulan.substring(0, 3) }}</span>
+                        </label>
                     </div>
-                    <button @click="closeModal" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/50">
+                    <button @click="closeExportModal" class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700">
+                        Batal
                     </button>
-                </div>
-                
-                <div class="max-h-[60vh] overflow-y-auto p-6">
-                    <div v-if="selectedBulan?.rincian && selectedBulan.rincian.length > 0" class="flex flex-col gap-3">
-                        <div v-for="(diklat, index) in selectedBulan.rincian" :key="index" class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/50">
-                            <div class="mb-2 flex items-start justify-between">
-                                <h4 class="font-semibold text-slate-900 dark:text-white">{{ diklat.nama_diklat }}</h4>
-                                <span class="rounded px-2 py-0.5 text-xs font-bold uppercase" :class="getJenisBadgeClass(diklat.jenis)">
-                                    {{ diklat.jenis }}
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    {{ formatDate(diklat.tanggal) }}
-                                </span>
-                                <span class="flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {{ diklat.jam }} Jam
-                                </span>
-                            </div>
-                            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="font-medium">Penyelenggara:</span> {{ diklat.penyelenggara }}
-                            </p>
-                        </div>
-                    </div>
-                    <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <button @click="downloadExcel" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Tidak ada diklat di bulan ini.</p>
-                    </div>
-                </div>
-                
-                <div class="border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-                    <button @click="closeModal" class="w-full rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right">
-                        Tutup
+                        Unduh Laporan
                     </button>
                 </div>
             </div>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+/* Transisi agar UI terasa tidak kaku saat rincian terbuka */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>

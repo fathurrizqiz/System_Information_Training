@@ -567,11 +567,13 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($d) {
                 return [
+                    'id' => $d->id, // TAMBAHKAN INI UNTUK TOMBOL GENERATE
                     'nama_diklat' => $d->periode->detailProgram->nama_diklat ?? 'Diklat Internal',
                     'tanggal' => $d->periode->tanggal,
                     'jam' => $d->periode->aksi->jam_diklat ?? 0,
                     'penyelenggara' => $d->periode->tempat ?? 'Internal',
-                    'jenis' => 'Internal'
+                    'jenis' => 'Internal',
+                    'sertifikat_path' => $d->sertifikat_path ?? null // TAMBAHKAN INI JIKA ADA
                 ];
             });
 

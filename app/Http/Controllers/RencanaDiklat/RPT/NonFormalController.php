@@ -27,7 +27,7 @@ class NonFormalController extends Controller
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index', [
             'karyawan' => $karyawan,
             'program' => $program,
-            'templates' => $templates
+           'templates' => $templates,
         ]);
     }
     public function storeProgram(Request $request)
@@ -345,6 +345,185 @@ class NonFormalController extends Controller
             'success',
             'Kehadiran berhasil diverifikasi.'
         );
+    }
+
+
+    // ADMIN UPLOAD
+    public function indexbyADMIN()
+    {
+        $karyawan = Karyawans::all();
+        $program = ProgramEksternal::with('eksternal.karyawan')->orderBy('tahun', 'desc')->get();
+        
+        return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/IndexAdmin', [
+            'karyawan' => $karyawan,
+            'program' => $program,
+           
+        ]);
+    }
+    public function storeProgrambyADMIN(Request $request)
+    {
+        $validate = $request->validate([
+            'nama_diklat' => 'required|string|max:255',
+            'tahun' => 'required|string|max:255',
+        ]);
+        ProgramEksternal::create($validate);
+        return redirect()->route('Diklat.eksternal');
+    }
+    public function storeDetailbyADMIN(Request $request)
+    {
+        $validate = $request->validate([
+            'program_id' => 'required|exists:program_diklat_eksternal,id',
+            'nama_karyawan' => 'required|string|max:255',
+            'tanggal_mulai' => 'nullable|date|after_or_equal:today',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'jam_diklat' => 'required|integer',
+            'penyelenggara' => 'nullable|string|max:255',
+            'nrp' => 'nullable|string|max:255',
+            'bukti_hadir' => 'required|file|mimes:pdf,jpg,jpeg|max:2048',
+        ], [
+            // Opsional: Kustomisasi pesan error bahasa Indonesia agar lebih user-friendly
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+        ]);
+
+        if ($validate['jam_diklat'] > 9) {
+            return redirect()->back()->with('error', 'Jam diklat per hari tidak boleh lebih dari 10 jam.');
+        }
+
+        // Default approved karena admin yang input
+        $validate['status'] = 'approved';
+
+        $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
+        $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
+
+        $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
+        $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
+
+        // Proses Upload Dokumen jika file valid
+        if ($request->hasFile('bukti_hadir')) {
+            $file = $request->file('bukti_hadir');
+
+            // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
+            $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            // Simpan file ke dalam folder 'public/diklat_eksternal'
+            $path = $file->storeAs('diklat_eksternal_', $namaFile, 'public');
+
+            // Simpan path/nama file ke array validate untuk dimasukkan ke database
+            $validate['bukti_hadir'] = $path;
+        }
+
+        $eksternal = DiklatEksternal::create($validate);
+        $this->updateRekapBulanan(
+            $eksternal->nrp,
+            date('Y', strtotime($eksternal->tanggal_mulai)),
+            date('n', strtotime($eksternal->tanggal_mulai))
+        );
+
+        // Panggil rekap
+        // $this->updateRekapBulanan(
+        //     $eksternal->nrp,
+        //     date('Y', strtotime($eksternal->tanggal_mulai)),
+        //     date('n', strtotime($eksternal->tanggal_mulai))
+        // );
+        return redirect()->route('Diklat.eksternal');
+    }
+
+    public function updateProgrambyADMIN(Request $request, $id)
+    {
+        $validate = $request->validate([
+            'nama_diklat' => 'required|string|max:255',
+            'tahun' => 'required|string|max:255',
+        ]);
+        
+        ProgramEksternal::findOrFail($id)->update($validate);
+        
+        // Return bisa disesuaikan dengan rute Admin kamu
+        return redirect()->back()->with('success', 'Program berhasil diperbarui oleh Admin');
+    }
+
+    public function updateDetailbyADMIN(Request $request, $id)
+    {
+        $diklat = DiklatEksternal::findOrFail($id);
+
+        $validate = $request->validate([
+            'program_id' => 'required|exists:program_diklat_eksternal,id',
+            'nama_karyawan' => 'required|string|max:255',
+            'tanggal_mulai' => 'nullable|date', // Admin mungkin butuh mengedit tanggal di masa lalu, jadi after_or_equal:today bisa dihilangkan untuk admin
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'jam_diklat' => 'required|integer',
+            'penyelenggara' => 'nullable|string|max:255',
+            'nrp' => 'nullable|string|max:255',
+            'bukti_hadir' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
+        ]);
+
+        // Karena ini Admin, pastikan status tetap/menjadi approved
+        $validate['status'] = 'approved';
+
+        $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
+        $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
+        $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
+        
+        $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
+
+        if ($request->hasFile('dokumen')) {
+            // Hapus file lama jika ada
+            if ($diklat->dokumen && Storage::disk('public')->exists($diklat->dokumen)) {
+                Storage::disk('public')->delete($diklat->dokumen);
+            }
+
+            $file = $request->file('dokumen');
+            $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+            
+            $path = $file->storeAs('diklat_eksternal_', $namaFile, 'public');
+            $validate['dokumen'] = $path;
+        }
+
+        $diklat->update($validate);
+
+        $this->updateRekapBulanan(
+            $diklat->nrp,
+            date('Y', strtotime($diklat->tanggal_mulai)),
+            date('n', strtotime($diklat->tanggal_mulai))
+        );
+
+        return redirect()->back()->with('success', 'Data detail diklat berhasil diperbarui dan disetujui');
+    }
+
+    public function destroyDetailbyADMIN($id)
+    {
+        $eksternal = DiklatEksternal::findOrFail($id);
+        
+        // Hapus file dokumen jika ada
+        if ($eksternal->dokumen && Storage::disk('public')->exists($eksternal->dokumen)) {
+            Storage::disk('public')->delete($eksternal->dokumen);
+        }
+
+        // Hapus bukti hadir jika ada
+        if ($eksternal->bukti_hadir && Storage::disk('public')->exists($eksternal->bukti_hadir)) {
+            Storage::disk('public')->delete($eksternal->bukti_hadir);
+        }
+
+        $nrp = $eksternal->nrp;
+        $tahun = date('Y', strtotime($eksternal->tanggal_mulai));
+        $bulan = date('n', strtotime($eksternal->tanggal_mulai));
+
+        $eksternal->delete();
+
+        // KARENA DATA DIHAPUS: Update rekap agar jamnya berkurang
+        $this->updateRekapBulanan($nrp, $tahun, $bulan);
+
+        return redirect()->back()->with('success', 'Detail diklat eksternal berhasil dihapus');
+    }
+
+    public function destroyProgrambyADMIN($id)
+    {
+        $program = ProgramEksternal::findOrFail($id);
+        // Hati-hati: Pastikan apakah menghapus program juga perlu menghapus detail dan me-rekap ulang? 
+        // Kalau iya, logikanya harus ditambahkan. Kalau tidak (cascade on delete di database), cukup delete saja.
+        $program->delete();
+        
+        return redirect()->back()->with('success', 'Program diklat eksternal berhasil dihapus');
     }
 
 }

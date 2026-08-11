@@ -166,10 +166,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/MasterData/destroy-karyawan/{id}', [MasterDataController::class, 'destroykaryawan']);
 
         // super admin
-        Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
-        Route::get('/super-admin/home', [SuperAdminController::class, 'home'])->name('superadmin.home');
-        Route::post('/super-admin/roles', [SuperAdminController::class, 'storeRole'])->name('superadmin.storeRole');
-        Route::post('/super-admin/assign/{user}', [SuperAdminController::class, 'assignRole'])->name('superadmin.assign');
+
 
         Route::get('/super-admin/users', [UserController::class, 'index'])->name('superadmin.users.index');
         Route::post('/super-admin/users/store', [UserController::class, 'store'])->name('superadmin.users.store');
@@ -218,6 +215,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/diklat-eksternal/{id}/hadir', [NonFormalController::class, 'hadir'])->name('diklat.eksternal.absen');
     Route::post('/diklat-hlc/{id}/hadir', [HLCController::class, 'hadirHLC'])->name('diklat.hlc.absen');
 
+    Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
+    Route::get('/super-admin/home', [SuperAdminController::class, 'home'])->name('superadmin.home');
+    Route::post('/super-admin/roles', [SuperAdminController::class, 'storeRole'])->name('superadmin.storeRole');
+    Route::post('/super-admin/assign/{user}', [SuperAdminController::class, 'assignRole'])->name('superadmin.assign');
+
 
     //Silabus
     Route::get('/silabus/diklat', [SilabusController::class, 'index']);
@@ -235,6 +237,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/impersonation/respond/{requestId}', [InboxController::class, 'respondImpersonate'])->name('impersonation.respond');
 
 
+    Route::get('/Admin/Eksternal', [NonFormalController::class, 'indexbyADMIN'])->name('Eksternal.Tersertivikasi.index');
+    Route::post('/Admin/Eksternal/storeProgram', [NonFormalController::class, 'storeProgrambyADMIN'])->name('Eksternal.Tersertivikasi.storeProgram');
+    Route::put('/Admin/Eksternal/storeProgram/update/{id}', [NonFormalController::class, 'updateProgrambyADMIN'])->name('Eksternal.Tersertivikasi.updateProgrambyADMIN');
+    Route::post('/Admin/Eksternal/storeDetail', [NonFormalController::class, 'storeDetailbyADMIN'])->name('Eksternal.Tersertivikasi.storeDetail');
+    Route::PUT('/Admin/Eksternal/storeDetail/update/{id}', [NonFormalController::class, 'updateDetailbyADMIN'])->name('Eksternal.Tersertivikasi.updateDetailbyADMIN');
+    Route::delete('/Admin/Eksternal/destroyDetailbyADMIN/{id}', [NonFormalController::class, 'destroyDetailbyADMIN'])->name('Eksternal.Tersertivikasi.destroyDetailbyADMIN');
 });
 
 require __DIR__ . '/settings.php';
