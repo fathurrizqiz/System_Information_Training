@@ -25,6 +25,15 @@ interface Jadwal {
     hlc?: any[];
     eksternal?: any[];
     kehadiranHariIni?: Kehadiran | null;
+    token_links?: {
+        pree?: string | null;
+        post?: string | null;
+        evaluasi?: string | null;
+    };
+    user_status?: {
+        pree_done?: boolean;
+        post_done?: boolean;
+    };
     meeting?: {
         id: number;
         link_zoom?: string | null;
@@ -364,7 +373,8 @@ const absenHariIniHLC = (hlc: any) => {
                 </div>
             </div>
             <div class="flex gap-3">
-                <button v-if="roles.includes('admin_diklat')"
+                <button
+                    v-if="roles.includes('admin_diklat')"
                     @click="goHP"
                     class="flex w-48 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
                 >
@@ -439,6 +449,7 @@ const absenHariIniHLC = (hlc: any) => {
                                     <th class="px-6 py-4">Lokasi</th>
                                     <th class="px-6 py-4">Tanggal</th>
                                     <th class="px-6 py-4">Link</th>
+                                    <th class="px-6 py-4">Test</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -477,6 +488,85 @@ const absenHariIniHLC = (hlc: any) => {
                                         <span v-else class="text-gray-500"
                                             >-</span
                                         >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <!-- Jika pelatihan belum di-start oleh admin -->
+                                        <span
+                                            v-if="!item.aksi"
+                                            class="text-xs text-gray-400 italic"
+                                        >
+                                            Belum dimulai
+                                        </span>
+
+                                        <!-- Jika sudah di-start, tampilkan secara bergantian berdasarkan progress -->
+                                        <template v-else>
+                                            <!-- 1. Jika Pre-Test belum dikerjakan -->
+                                            <a
+                                                v-if="
+                                                    !item.user_status
+                                                        ?.pree_done &&
+                                                    item.token_links?.pree
+                                                "
+                                                :href="item.token_links.pree"
+                                                target="_blank"
+                                                class="rounded bg-blue-600 px-3 py-1 text-xs text-white shadow-sm hover:bg-blue-700"
+                                            >
+                                                Mulai Pre-Test
+                                            </a>
+
+                                            <!-- 2. Jika Pre-Test sudah, tapi Post-Test belum -->
+                                            <a
+                                                v-else-if="
+                                                    item.user_status
+                                                        ?.pree_done &&
+                                                    !item.user_status
+                                                        ?.post_done &&
+                                                    item.token_links?.post
+                                                "
+                                                :href="item.token_links.post"
+                                                target="_blank"
+                                                class="rounded bg-emerald-600 px-3 py-1 text-xs text-white shadow-sm hover:bg-emerald-700"
+                                            >
+                                                Mulai Post-Test
+                                            </a>
+
+                                            <!-- 3. Jika Post-Test sudah, lanjut ke Evaluasi -->
+                                            <a
+                                                v-else-if="
+                                                    item.user_status
+                                                        ?.post_done &&
+                                                    item.token_links?.evaluasi
+                                                "
+                                                :href="
+                                                    item.token_links.evaluasi
+                                                "
+                                                target="_blank"
+                                                class="rounded bg-purple-600 px-3 py-1 text-xs text-white shadow-sm hover:bg-purple-700"
+                                            >
+                                                Isi Evaluasi
+                                            </a>
+
+                                            <!-- 4. Jika semua tahapan telah selesai -->
+                                            <span
+                                                v-else
+                                                class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"
+                                            >
+                                                <svg
+                                                    class="h-4 w-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M5 13l4 4L19 7"
+                                                    />
+                                                </svg>
+                                                Selesai
+                                            </span>
+                                        </template>
                                     </td>
                                 </tr>
                             </tbody>

@@ -48,24 +48,24 @@ const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 
 const mainNavItems = computed(() => [
     {
-        title: 'USER MANAGEMENT (super-admin)',
+        title: 'User Management (super-admin)',
         href: '/super-admin/home', 
         icon: ShieldAlert,
         roles: ['super-admin'],
     },
     {
-        title: 'DASHBOARD DIKLAT (ADMIN)',
+        title: 'Dashboard Diklat (ADMIN)',
         href: dashboard(),
         icon: LayoutGrid,
         roles: ['admin_diklat'],
     },
     {
-        title: 'DASHBOARD DIKLAT (USER)',
+        title: 'Dashboard Diklat (USER)',
         href: route('dashboard.user'),
         icon: LayoutGrid,
     },
     {
-        title: 'APPROVAL DIKLAT',
+        title: 'Approval Diklat',
         href: '/Diklat',
         icon: BookMarked,
     },
@@ -75,7 +75,7 @@ const mainNavItems = computed(() => [
     //     icon: FileBadge,
     // },
     {
-        title: 'PERSETUJUAN (Admi Diklat)',
+        title: 'Persetujuan (Admin Diklat)',
         href: '/Persetujuan',
         icon: Signature,
         roles: ['admin_diklat'],
@@ -83,48 +83,48 @@ const mainNavItems = computed(() => [
         badge: persetujuanCount.value > 0 ? persetujuanCount.value : null,
     },
     {
-        title: 'LIBRARY MATERI',
+        title: 'Library Materi',
         href: '/Materi',
         icon: Library,
     },
     {
-        title: 'RENCANA DIKLAT (ADMIN DIKLAT)',
+        title: 'Rencana Diklat (ADMIN DIKLAT)',
         href: '/RencanaDiklat/RPT/PF',
         icon: GraduationCap,
         roles: ['admin_diklat'],
     },
     {
-        title: 'JADWAL DIKLAT',
+        title: 'Jadwal Diklat',
         href: '/JadwalDiklat/Internal',
         icon: CalendarCheck,
         badge: jadwalCount.value > 0 ? jadwalCount.value : null,
     },
     {
-        title: 'EVALUASI DIKLAT (ADMIN DIKLAT)',
+        title: 'Evaluasi Diklat (ADMIN DIKLAT)',
         href: '/Diklat/Evaluasi',
         icon: ChartLine,
         roles: ['admin_diklat'],
     },
     {
-        title: 'DATABASE DIKLAT (Admin Diklat)',
+        title: 'Database Diklat (Admin Diklat)',
         href: '/Laporan/Diklat',
         icon: BookLock,
         roles: ['admin_diklat'],
     },
     {
-        title: 'MASTERDATA (ADMIN DIKLAT)',
+        title: 'Masterdata (ADMIN DIKLAT)',
         href: '/MasterData/home',
         icon: BookCopy,
         roles: ['admin_diklat'],
     },
     {
-        title: 'SETTINGS (ADMIN DIKLAT)',
+        title: 'Settings (ADMIN DIKLAT)',
         href: '/Settings',
         icon: Settings,
         roles: ['admin_diklat'],
     },
     {
-        title: 'INBOX',
+        title: 'Indbox',
         href: '/HLC/Home/user',
         icon: Inbox,
         // PERBAIKAN: Gunakan variable countInboxData yang sudah diperbaiki

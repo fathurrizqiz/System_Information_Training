@@ -21,9 +21,11 @@ use App\Models\RekapJamDiklat;
 use App\Models\TemplatePembahasanSertifikat;
 use App\Models\TestToken;
 use App\Models\UserAnswerPostPreeDetail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Log;
 use Str;
@@ -221,12 +223,16 @@ class PostPreeController extends Controller
         }
 
         // 7. Cek & Generate Sertifikat (Hanya jika Pre & Post sudah Done)
+        // Manual Download
         $this->checkAndGenerateCertificate($peserta);
+        // AUTO DOWNLOAD
+        $certGeneratedId = $this->checkAndGenerateCertificateAuto($peserta);
 
         // 8. Cukup Satu Return di akhir
         return back()
             ->with('success', 'Jawaban berhasil disimpan!')
-            ->with('nilai_akhir', $totalScore);
+            ->with('nilai_akhir', $totalScore)
+            ->with('auto_download_url', $certGeneratedId ? url("/sertifikat/download/{$certGeneratedId}") : null);
     }
 
     protected function checkAndGenerateCertificate($peserta)
@@ -251,6 +257,102 @@ class PostPreeController extends Controller
 
 
         // GenerateCertificateJob::dispatch($peserta->id);
+    }
+
+    // auto download sertifikat jika sudah ada
+    protected function checkAndGenerateCertificateAuto($peserta)
+    {
+        // 1. Cek apakah sudah pernah dibuat atau tes belum selesai
+        if ($peserta->sertifikat_generated_at)
+            return false;
+        if (!$peserta->post_done_at || !$peserta->pree_done_at)
+            return false;
+        if (!$peserta->periode || !$peserta->periode->detail)
+            return false;
+
+        try {
+            // 2. Ambil materi
+            $materi = TemplatePembahasanSertifikat::where('periode_id', $peserta->periode_id)
+                ->get()->values()->map(fn($m, $i) => ['no' => $i + 1, 'materi' => $m->materi])->toArray();
+
+            // 3. Load Fonts (Gunakan cara yang sama seperti di fungsi generate milikmu)
+            // 3. Load Fonts
+            $fonts = [];
+
+            // Pengecekan multi-case untuk ScriptMTBold
+            $scriptPath1 = storage_path('fonts/ScriptMTBold.ttf');
+            $scriptPath2 = storage_path('fonts/ScriptMTBold.TTF');
+            $scriptPath3 = storage_path('fonts/scriptmtbold.ttf');
+
+            if (file_exists($scriptPath1)) {
+                $fonts['ScriptMTBold'] = ['mime' => 'font/ttf', 'base64' => base64_encode(file_get_contents($scriptPath1))];
+            } elseif (file_exists($scriptPath2)) {
+                $fonts['ScriptMTBold'] = ['mime' => 'font/ttf', 'base64' => base64_encode(file_get_contents($scriptPath2))];
+            } elseif (file_exists($scriptPath3)) {
+                $fonts['ScriptMTBold'] = ['mime' => 'font/ttf', 'base64' => base64_encode(file_get_contents($scriptPath3))];
+            } else {
+                Log::error("Auto-Generate Gagal: Font ScriptMTBold tidak ditemukan di storage/fonts/");
+                return false; // SANGAT PENTING: Hentikan eksekusi di sini agar Blade tidak crash!
+            }
+
+            // Pengecekan multi-case untuk Arial (seperti perbaikan sebelumnya)
+            $arialPathTtf = storage_path('fonts/arialbd.ttf');
+            $arialPathOtf = storage_path('fonts/ARIALBOLDMT.otf');
+            $arialPathOtfUpper = storage_path('fonts/ARIALBOLDMT.OTF');
+
+            if (file_exists($arialPathTtf)) {
+                $fonts['ARIALBOLDMT'] = ['mime' => 'font/ttf', 'base64' => base64_encode(file_get_contents($arialPathTtf))];
+            } elseif (file_exists($arialPathOtf)) {
+                $fonts['ARIALBOLDMT'] = ['mime' => 'font/otf', 'base64' => base64_encode(file_get_contents($arialPathOtf))];
+            } elseif (file_exists($arialPathOtfUpper)) {
+                $fonts['ARIALBOLDMT'] = ['mime' => 'font/otf', 'base64' => base64_encode(file_get_contents($arialPathOtfUpper))];
+            } else {
+                Log::error("Auto-Generate Gagal: Font Arial Bold tidak ditemukan di storage/fonts/");
+                return false; // Hentikan eksekusi
+            }
+
+            // 4. Load Assets
+            $assetPaths = [
+                'bg1' => public_path('diklat_template/sertifikat/bg1.png'),
+                'bg2' => public_path('diklat_template/sertifikat/bg2.png'),
+                'logo' => public_path('diklat_template/sertifikat/logo1.png'),
+                'ttd' => public_path('diklat_template/sertifikat/ttd.png'),
+            ];
+
+            $assets = [];
+            foreach ($assetPaths as $key => $path) {
+                if (file_exists($path)) {
+                    $assets[$key] = base64_encode(file_get_contents($path));
+                }
+            }
+
+            // 5. Generate PDF
+            $pdf = Pdf::loadView('sertifikat.sertifikat', [
+                'nama' => $peserta->nama_karyawan,
+                'nama_diklat' => $peserta->periode->detail->nama_diklat,
+                'tanggal' => Carbon::parse($peserta->periode->tanggal)->format('d F Y'),
+                'direktur' => 'Nama Direktur',
+                'materi' => $materi,
+                'fonts' => $fonts,
+                'assets' => $assets,
+            ])->setPaper('a4', 'landscape');
+
+            // 6. Simpan File & Update Database
+            $path = "sertifikat/{$peserta->nrp}_{$peserta->id}.pdf";
+            Storage::disk('public')->put($path, $pdf->output());
+
+            $peserta->update([
+                'sertifikat_path' => $path,
+                'sertifikat_generated_at' => now(),
+            ]);
+
+            // Berhasil! Kembalikan ID peserta untuk URL Download
+            return $peserta->id;
+
+        } catch (\Exception $e) {
+            Log::error("Auto-Generate Sertifikat Gagal: " . $e->getMessage());
+            return false;
+        }
     }
 
 
@@ -545,7 +647,7 @@ class PostPreeController extends Controller
 
 
 
-    
+
 
     public function submitEvaluasi(Request $request)
     {

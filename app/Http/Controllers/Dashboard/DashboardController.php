@@ -375,10 +375,14 @@ class DashboardController extends Controller
         $bulanTerpujiCount = 0;
         $bulanHarusLolos = 0;
 
-        $persentaseTahunan = $targetJam > 0
-            ? round(($totalJamFinal / $targetJam) * 100, 2)
-            : 0;
+        // 1. Hitung Target Tahunan Sebenarnya
+        $targetJamTahunan = $targetJam * 12;
 
+        // 2. Hitung Persentase dengan benar
+        $persentaseTahunan = $targetJamTahunan > 0 
+            ? round(($totalJamFinal / $targetJamTahunan) * 100, 2)
+            : 0;
+            
         $persentaseBulananRealtime = $targetBulanan > 0
             ? round(($totalJamFinalBulanan / $targetBulanan) * 100, 2)
             : 0;

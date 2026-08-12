@@ -28,10 +28,23 @@ class JadwalInternalController extends Controller
     {
         $nrp = Auth::user()->nrp;
         $search = $request->input('search');
+        $user = auth()->user();
+        $isAdminDiklat = $user->role === 'admin_diklat';
 
-        $internal = PeriodeUtama::with(['detail', 'meeting'])
-            ->whereHas('peserta', function ($peserta) {
-                $peserta->where('nrp', auth()->user()->nrp);
+        // 1. Internal (Diperbarui agar membawa data Aksi & Token)
+        $internal = PeriodeUtama::with([
+                'detail', 
+                'meeting', 
+                'aksi', 
+                'tokens',
+                'peserta' => function($q) use ($user) {
+                    $q->where('nrp', $user->nrp);
+                }
+            ])
+            ->whereHas('peserta', function ($peserta) use ($user, $isAdminDiklat) {
+                if (! $isAdminDiklat) {
+                    $peserta->where('nrp', $user->nrp);
+                }
             })
             ->whereDate('tanggal', '>=', Carbon::today())
             ->when($search, function ($query) use ($search) {
@@ -41,6 +54,30 @@ class JadwalInternalController extends Controller
             })
             ->orderBy('tanggal')
             ->get();
+
+        // Mapping untuk token dan status pengerjaan user
+        $internal->transform(function ($periode) use ($user) {
+            $tokenPree = $periode->tokens->where('type', 'pree')->first();
+            $tokenPost = $periode->tokens->where('type', 'post')->first();
+            $tokenEvaluasi = $periode->tokens->where('type', 'evaluasi')->first();
+
+            // Ambil data peserta (detail internal) untuk user yang login
+            $peserta = $periode->peserta->first();
+
+            $periode->token_links = [
+                'pree' => $tokenPree ? url("/test/token/pree/{$tokenPree->token}") : null,
+                'post' => $tokenPost ? url("/test/token/post/{$tokenPost->token}") : null,
+                'evaluasi' => $tokenEvaluasi ? url("/test/token/evaluasi/{$tokenEvaluasi->token}") : null,
+            ];
+
+            // Kirim status apakah pre-test / post-test sudah dikerjakan
+            $periode->user_status = [
+                'pree_done' => $peserta ? !is_null($peserta->pree_done_at) : false,
+                'post_done' => $peserta ? !is_null($peserta->post_done_at) : false,
+            ];
+
+            return $periode;
+        });
 
         // 2. HLC (Status Offered/Undangan)
         $user = auth()->user();

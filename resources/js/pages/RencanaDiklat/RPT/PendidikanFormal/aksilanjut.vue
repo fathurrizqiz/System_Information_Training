@@ -86,6 +86,7 @@ function start() {
                 router.visit(route('aksi-internal', { id: props.detail_id }), {
                     preserveScroll: true,
                 });
+                window.location.reload();
             },
         },
     );

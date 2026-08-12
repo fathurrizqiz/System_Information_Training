@@ -271,6 +271,9 @@ function jadwalTerdekat(){
                             <p class="mt-2 text-2xl leading-tight font-extrabold text-slate-900 dark:text-white">
                                 {{ totalJam }}
                             </p>
+                            <p class="mt-2 text-slate-200 font-serif dark:text-white">
+                                / {{ targetJam * 12 }} Jam
+                            </p>
                             <p class="mt-1 text-sm font-semibold" :class="statusWarna">
                                 {{ Math.round(persentase) }}%
                             </p>

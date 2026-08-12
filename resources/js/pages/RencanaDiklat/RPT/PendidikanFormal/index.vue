@@ -4,7 +4,7 @@ import Input from '@/components/ui/input/Input.vue';
 // import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage, Link } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
@@ -266,37 +266,50 @@ const kirimNotifikasi = (id: number, tipe: string) => {
     <Head title="Detail Diklat" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <HeaderMenu class="p-10" :items="menuItems" />
-        <div
-            class="group relative h-10 w-full overflow-hidden rounded-s-lg shadow-lg md:h-32"
-        >
-            <!-- 1. Background Image -->
-            <img
-                src="https://img.magnific.com/free-vector/blue-shiny-ornament-floral-leafs-background_1409-4313.jpg?semt=ais_hybrid&w=740&q=80"
-                alt="Pendidikan"
-                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-
-            <!-- 2. Overlay (Penting agar teks terbaca di segala jenis gambar) -->
-            <div
-                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-            ></div>
-
-            <!-- 3. Responsive Text Container -->
-            <div class="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
-                <h1
-                    class="text-xl font-bold tracking-tight text-white drop-shadow-lg md:text-3xl"
+        <!-- 1. MODERN SWIPEABLE TAB MENU -->
+    <div class="px-5 pt-6 pb-2">
+        <div class="w-full overflow-x-auto hide-scrollbar">
+            <nav class="flex w-max min-w-full space-x-2 rounded-xl bg-slate-100 p-1.5 sm:w-auto sm:min-w-0">
+                <Link
+                    v-for="item in menuItems"
+                    :key="item.title"
+                    :href="item.href"
+                    :class="[
+                        'flex-1 shrink-0 rounded-lg px-6 py-2.5 text-center text-sm font-bold transition-all duration-300 sm:flex-none',
+                        // Deteksi otomatis apakah menu ini sedang aktif berdasarkan URL
+                        page.url.startsWith(item.href)
+                            ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
+                            : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-700'
+                    ]"
                 >
-                    Diklat Internal
-                </h1>
-                <p
-                    class="mt-2 translate-y-4 transform text-sm text-gray-200 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:text-base"
-                >
-                    Kelola data riwayat pendidikan dan sertifikasi resmi Anda di
-                    sini.
-                </p>
-            </div>
+                    {{ item.title }}
+                </Link>
+            </nav>
         </div>
+    </div>
+
+    <!-- 2. HERO BANNER -->
+    <!-- Catatan: Saya sedikit mengubah h-10 menjadi h-24 di mobile agar teks di dalamnya bisa terbaca dengan baik -->
+    <div class="mx-5 group relative h-24 w-auto overflow-hidden rounded-xl shadow-lg md:h-32">
+        <!-- Background Image -->
+        <img
+            src="https://img.magnific.com/free-vector/blue-shiny-ornament-floral-leafs-background_1409-4313.jpg?semt=ais_hybrid&w=740&q=80"
+            alt="Pendidikan"
+            class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+        
+        <!-- Text Container -->
+        <div class="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
+            <h1 class="text-xl font-bold tracking-tight text-white drop-shadow-lg md:text-3xl">
+                Diklat Internal
+            </h1>
+            <p class="mt-1 translate-y-4 transform text-xs text-gray-200 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 md:text-sm">
+                Kelola data riwayat pendidikan dan sertifikasi resmi Anda di sini.
+            </p>
+        </div>
+    </div>
         <div class="p-5">
             <!-- Header with Add Program Button -->
             <div class="mb-6 flex items-center justify-between">

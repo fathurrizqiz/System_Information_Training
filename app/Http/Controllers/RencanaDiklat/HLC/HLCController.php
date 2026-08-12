@@ -21,7 +21,7 @@ class HLCController extends Controller
     public function index()
     {
         $karyawan = Karyawans::all();
-        $program = ProgramHlc::with('hlc.karyawan')->orderBy('tahun', 'desc')->get();
+        $program = ProgramHlc::with('hlc.karyawan')->orderBy('tahun', 'esc')->get();
         $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
 
         return Inertia::render('RencanaDiklat/HLC/index', [

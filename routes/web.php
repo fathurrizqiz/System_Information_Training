@@ -84,14 +84,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/DiklatInternal/preetest', [PostPreeController::class, 'savePre']);
         Route::post('/DiklatInternal/posttest', [PostPreeController::class, 'savePost']);
         // Route::get('/DiklatInternal/evaluasi', [PostPreeController::class, 'openEvaluasiByToken']);
-        // user post and pree
-        Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class, 'showTest']);
-        Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
+
         // by token
         Route::post('/DiklatInternal/periode/start', [PostPreeController::class, 'startPeriode']);
         Route::post('/DiklatInternal/periode/end', [PostPreeController::class, 'endPeriode']);
-        Route::get('/test/token/evaluasi/{token}', [PostPreeController::class, 'openEvaluasiByToken']);
-        Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
+        ;
         // post evaluasi
         Route::post('/test/evaluasi/post', [PostPreeController::class, 'submitEvaluasi']);
         // Route Detail Periode
@@ -220,6 +217,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/super-admin/roles', [SuperAdminController::class, 'storeRole'])->name('superadmin.storeRole');
     Route::post('/super-admin/assign/{user}', [SuperAdminController::class, 'assignRole'])->name('superadmin.assign');
 
+    // pre post
+    Route::get('/test/token/evaluasi/{token}', [PostPreeController::class, 'openEvaluasiByToken']);
+    Route::get('/test/token/{type}/{token}', [PostPreeController::class, 'openByToken']);
+    // user post and pree
+    Route::get('/DiklatInternal/test/{type}/{detail_id}', [PostPreeController::class, 'showTest']);
+    Route::post('/DiklatInternal/test/submit', [PostPreeController::class, 'submitTest']);
 
     //Silabus
     Route::get('/silabus/diklat', [SilabusController::class, 'index']);

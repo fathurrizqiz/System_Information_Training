@@ -4,7 +4,7 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProgramModal from '@/pages/RencanaDiklat/HLC/ProgramModal.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
@@ -396,7 +396,26 @@ const kirimNotifikasiHLC = (id: number, tipe: string) => {
     <Head title="HLC" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <HeaderMenu class="p-10" :items="menuItems" />
+        <div class="px-5 pt-6 pb-2">
+        <div class="w-full overflow-x-auto hide-scrollbar">
+            <nav class="flex w-max min-w-full space-x-2 rounded-xl bg-slate-100 p-1.5 sm:w-auto sm:min-w-0">
+                <Link
+                    v-for="item in menuItems"
+                    :key="item.title"
+                    :href="item.href"
+                    :class="[
+                        'flex-1 shrink-0 rounded-lg px-6 py-2.5 text-center text-sm font-bold transition-all duration-300 sm:flex-none',
+                        // Deteksi otomatis apakah menu ini sedang aktif berdasarkan URL
+                        page.url.startsWith(item.href)
+                            ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
+                            : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-700'
+                    ]"
+                >
+                    {{ item.title }}
+                </Link>
+            </nav>
+        </div>
+    </div>
 
         <div
             class="group relative h-10 w-full overflow-hidden rounded-s-lg shadow-lg/30 md:h-32"

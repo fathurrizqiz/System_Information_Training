@@ -51,6 +51,11 @@ class PeriodeUtama extends Model
         return $this->hasOne(AksiDetailInternal::class, 'periode_id');
     }
 
+    public function tokens()
+    {
+        return $this->hasMany(TestToken::class, 'periode_id', 'id');
+    }
+
     public function meeting()
     {
         return $this->hasOne(InternalMeetModels::class, 'periode_id');
