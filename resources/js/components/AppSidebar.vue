@@ -94,6 +94,12 @@ const mainNavItems = computed(() => [
         roles: ['admin_diklat'],
     },
     {
+        title: 'Eksternal Tersertivikasi (ADMIN DIKLAT)',
+        href: '/Admin/Eksternal',
+        icon: GraduationCap,
+        roles: ['admin_diklat'],
+    },
+    {
         title: 'Jadwal Diklat',
         href: '/JadwalDiklat/Internal',
         icon: CalendarCheck,
