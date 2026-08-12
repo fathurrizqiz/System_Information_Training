@@ -96,7 +96,7 @@ const mainNavItems = computed(() => [
     {
         title: 'Eksternal Tersertivikasi (ADMIN DIKLAT)',
         href: '/Admin/Eksternal',
-        icon: GraduationCap,
+        icon: ShieldCheck,
         roles: ['admin_diklat'],
     },
     {
