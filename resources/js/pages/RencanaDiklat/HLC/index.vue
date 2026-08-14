@@ -390,6 +390,11 @@ const kirimNotifikasiHLC = (id: number, tipe: string) => {
         );
     }
 };
+
+const generateReport = (id: number, jenis: string) => {
+    const url = `/program/generate?jenis=${jenis}&id=${id}`;
+    window.open(url, '_blank');
+};
 </script>
 
 <template>
@@ -588,6 +593,14 @@ const kirimNotifikasiHLC = (id: number, tipe: string) => {
                     :key="program.id"
                     class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                 >
+                <div>
+                        <button
+                            @click="generateReport(program.id, 'hlc')"
+                            class="rounded bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-green-700"
+                        >
+                            Generate Report
+                        </button>
+                    </div>
                     <!-- Card Header -->
                     <div
                         class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/50 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-800/50"

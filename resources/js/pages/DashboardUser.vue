@@ -236,7 +236,7 @@ const downloadExcel = () => {
     monthsToExport.forEach(m => params.append('months[]', m.toString()));
 
     // Gunakan window.location agar browser langsung mengunduh file
-    window.location.href = `/Laporan/Diklat/Export?${params.toString()}`;
+    window.location.href = `/Laporan/Diklat/Export/user?${params.toString()}`;
     
     closeExportModal();
     toast.info('Laporan sedang diunduh...');

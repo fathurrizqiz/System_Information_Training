@@ -22,7 +22,7 @@ class NonFormalController extends Controller
     public function index()
     {
         $karyawan = Karyawans::all();
-        $program = ProgramEksternal::with('eksternal.karyawan')->orderBy('tahun', 'esc')->get();
+        $program = ProgramEksternal::with('eksternal.karyawan')->latest()->get();
         $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index', [
             'karyawan' => $karyawan,
@@ -352,7 +352,7 @@ class NonFormalController extends Controller
     public function indexbyADMIN()
     {
         $karyawan = Karyawans::all();
-        $program = ProgramEksternal::with('eksternal.karyawan')->orderBy('tahun', 'desc')->get();
+        $program = ProgramEksternal::with('eksternal.karyawan')->latest()->get();
         
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/IndexAdmin', [
             'karyawan' => $karyawan,
