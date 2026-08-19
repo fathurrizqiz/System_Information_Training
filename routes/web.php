@@ -112,6 +112,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Laporan
         Route::get('/Laporan/Diklat', [ReportController::class, 'index'])->name('laporan.diklat');
+        Route::get('/Laporan/Diklat/download/all', [ReportController::class, 'exportLaporanDatabase'])->name('laporan.diklat.database');
+        Route::get('/Laporan/Diklat/download/bagian', [ReportController::class, 'exportPerBagian'])->name('laporan.diklat.database.bagian');
         // generate laporan excel
         Route::get('/Laporan/Diklat/Export', [GenerateReportController::class, 'generateReport'])->name('laporan.diklat.export');
         Route::get('/Laporan/Diklat/Export/user', [GenerateReportController::class, 'generateUserReport'])->name('laporan.generateUserReport.export');
@@ -197,7 +199,7 @@ Route::middleware(['auth'])->group(function () {
     // download setifikat internal
     Route::post('/sertifikat/generate/{peserta}', [SertifikatController::class, 'generate']);
     Route::get('/sertifikat/download/{peserta}', [SertifikatController::class, 'download']);
-    
+
 
     //Materi Diklat
     Route::get('/Materi', [MateriController::class, 'index']);
