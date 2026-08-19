@@ -50,6 +50,18 @@ const karyawanSearchQuery = ref('');
 const isDropdownOpen = ref(false);
 const selectedKaryawan = ref<Karyawan | null>(null);
 
+const getHariJumlah = (tanggalMulai: string | null, tanggalSelesai: string | null) => {
+    if (!tanggalMulai || !tanggalSelesai) return 1;
+
+    const mulai = new Date(tanggalMulai);
+    const selesai = new Date(tanggalSelesai);
+
+    if (Number.isNaN(mulai.getTime()) || Number.isNaN(selesai.getTime())) return 1;
+
+    const diff = Math.floor((selesai.getTime() - mulai.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(1, diff + 1);
+};
+
 // --- Watcher untuk mengisi data form (Mode Edit vs Tambah) ---
 watch(() => props.diklat, (newVal) => {
     // Reset State Autocomplete
@@ -58,8 +70,12 @@ watch(() => props.diklat, (newVal) => {
 
     if (newVal) {
         // Mode EDIT: Isi form dengan data yang ada
-        form.value = { ...newVal };
-        
+        const totalJam = Number(newVal.jam_diklat ?? 0);
+        const hari = getHariJumlah(newVal.tanggal_mulai ?? null, newVal.tanggal_selesai ?? null);
+        const jamPerHari = hari > 1 && totalJam > 9 && totalJam % hari === 0 ? totalJam / hari : totalJam;
+
+        form.value = { ...newVal, jam_diklat: jamPerHari };
+
         // Set info karyawan yang sudah terpilih sebelumnya
         if (newVal.karyawan) {
             selectedKaryawan.value = newVal.karyawan;

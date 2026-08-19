@@ -192,11 +192,30 @@ class HLCController extends Controller
 
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
 
+        // Saat edit, nilai jam bisa datang sebagai total jam yang sudah dikalikan,
+        // terutama ketika form diisi ulang dari data lama. Normalisasi dulu agar
+        // tidak terjadi penggandaan total jam saat update.
+        $jamPerHari = (float) ($validated['jam_diklat'] ?? 0);
+        if ($jamPerHari > 9 && $selisihHari > 1) {
+            $jamPerHari = round($jamPerHari / $selisihHari, 2);
+        }
+
+        if ($jamPerHari < 1 || $jamPerHari > 9) {
+            return back()->withErrors(['jam_diklat' => 'Jam diklat per hari harus antara 1-9 jam.']);
+        }
+
         // Total jam = (input jam per hari) * jumlah hari
-        $validated['jam_diklat'] = ($validated['jam_diklat'] ?? 0) * $selisihHari;
+        $validated['jam_diklat'] = (int) round($jamPerHari * $selisihHari);
 
         $hlc->update($validated);
 
+        if ($hlc->status === 'approved') {
+            $this->updateRekapBulanan(
+                $hlc->nrp,
+                $tanggalMulai->year,
+                $tanggalMulai->month
+            );
+        }
 
         return redirect()->route('diklat.hlc.admin')->with('success', 'Detail diklat berhasil diperbarui.');
     }

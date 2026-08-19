@@ -403,7 +403,7 @@ const generateReport = (id: number, jenis: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="px-5 pt-6 pb-2">
         <div class="w-full overflow-x-auto hide-scrollbar">
-            <nav class="flex w-max min-w-full space-x-2 rounded-xl bg-slate-100 p-1.5 sm:w-auto sm:min-w-0">
+            <nav class="flex w-max min-w-full space-x-2 rounded-s-lg bg-slate-100 p-1.5 sm:w-auto sm:min-w-0">
                 <Link
                     v-for="item in menuItems"
                     :key="item.title"

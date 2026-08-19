@@ -39,7 +39,7 @@
                     <input
                         v-model="form.nrp"
                         type="text"
-                        placeholder="Enter your Employee ID"
+                        placeholder="Enter your NRP"
                         class="w-full rounded-xl border border-slate-200 px-4 py-3 text-black focus:border-blue-500 focus:outline-none"
                     />
 

@@ -286,13 +286,22 @@ class DiklatController extends Controller
             return back()->withErrors(['tanggal_selesai' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.']);
         }
 
-
         // hasilnya selalu positif dan inklusif (misal 10–11 = 2 hari)
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
 
-        // kalikan jam_diklat dengan lama hari
-        $validated['jam_diklat'] = $validated['jam_diklat'] * $selisihHari;
+        // Saat edit, form bisa mengirim total jam (misalnya 24 untuk 3 hari) atau jam per hari.
+        // Jika input > 9, kemungkinan besar itu adalah total jam yang sudah dikalikan sebelumnya,
+        // jadi kita ubah ke jam per hari sebelum menghitung ulang total.
+        $jamPerHari = (float) $validated['jam_diklat'];
+        if ($jamPerHari > 9 && $selisihHari > 1) {
+            $jamPerHari = round($jamPerHari / $selisihHari, 2);
+        }
 
+        if ($jamPerHari < 1 || $jamPerHari > 9) {
+            return back()->withErrors(['jam_diklat' => 'Jam diklat per hari harus antara 1-9 jam.']);
+        }
+
+        $validated['jam_diklat'] = (int) round($jamPerHari * $selisihHari);
 
         $diklat = DiklatKaryawan::findOrFail($id);
         // Proses upload file jika ada

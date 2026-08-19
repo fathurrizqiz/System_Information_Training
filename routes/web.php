@@ -244,6 +244,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/Admin/Eksternal', [NonFormalController::class, 'indexbyADMIN'])->name('Eksternal.Tersertivikasi.index');
+    Route::get('/Admin/Eksternal/preview/{id}', [NonFormalController::class, 'previewAdminEksternal'])->name('Eksternal.Tersertivikasi.preview');
     Route::post('/Admin/Eksternal/storeProgram', [NonFormalController::class, 'storeProgrambyADMIN'])->name('Eksternal.Tersertivikasi.storeProgram');
     Route::put('/Admin/Eksternal/storeProgram/update/{id}', [NonFormalController::class, 'updateProgrambyADMIN'])->name('Eksternal.Tersertivikasi.updateProgrambyADMIN');
     Route::post('/Admin/Eksternal/storeDetail', [NonFormalController::class, 'storeDetailbyADMIN'])->name('Eksternal.Tersertivikasi.storeDetail');

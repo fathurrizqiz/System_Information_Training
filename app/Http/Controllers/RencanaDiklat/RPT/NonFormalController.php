@@ -360,6 +360,17 @@ class NonFormalController extends Controller
            
         ]);
     }
+    public function previewAdminEksternal($id)
+    {
+        $diklat = DiklatEksternal::findOrFail($id);
+
+        if (!$diklat->file_path || !Storage::disk('public')->exists($diklat->bukti_hadir)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+      
+
+        return response()->file(storage_path('app/public/' . $diklat->bukti_hadir));
+    }
     public function storeProgrambyADMIN(Request $request)
     {
         $validate = $request->validate([
