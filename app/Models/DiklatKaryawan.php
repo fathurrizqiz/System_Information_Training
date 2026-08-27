@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\CustomSoftDelete;
 
 class DiklatKaryawan extends Model
 {
+    use CustomSoftDelete;
     protected $table = 'diklat_karyawan';
     protected $fillable = [
         'nrp',
@@ -20,12 +22,16 @@ class DiklatKaryawan extends Model
         'status',
         'alasan_penolakan',
         'evaluasimateri',
-        'evaluasipengajar'
+        'evaluasipengajar',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
     ];
 
     protected $casts = [
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
+        'deleted_at' => 'datetime',
     ];
 
 

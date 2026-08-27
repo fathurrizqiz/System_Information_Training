@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\CustomSoftDelete;
 
 class DiklatEksternal extends Model
 {
+    use CustomSoftDelete;
     protected $table = 'diklat_eksternal';
     protected $fillable = [
         'program_id',
@@ -22,8 +24,18 @@ class DiklatEksternal extends Model
         'uploaded_at',
         'catatan_verifikasi',
         'catatan_penolakan',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
     ];
 
+    protected $casts = [
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'uploaded_at' => 'datetime',
+        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
+    ];
     public function kehadiran()
     {
         return $this->hasMany(EksternalAbsenModel::class, 'diklat_eksternal_id');

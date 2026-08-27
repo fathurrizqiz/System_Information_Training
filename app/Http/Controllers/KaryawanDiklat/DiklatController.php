@@ -20,7 +20,7 @@ class DiklatController extends Controller
     {
         $user = auth()->user();
 
-        $karyawan = Karyawans::where('nrp', $user->nrp)->first();
+        $karyawan = Karyawans::active()->where('nrp', $user->nrp)->first();
 
         if (!$karyawan) {
             return abort(403, 'Data karyawan tidak ditemukan untuk user ini.');
@@ -56,7 +56,7 @@ class DiklatController extends Controller
             : 10;
 
         // === Diklat Karyawan (User Input) ===
-        $diklatQuery = DiklatKaryawan::where('nrp', $karyawan->nrp);
+        $diklatQuery = DiklatKaryawan::active()->where('nrp', $karyawan->nrp);
 
         if ($search) {
             $diklatQuery->where(function ($q) use ($search) {
@@ -81,7 +81,7 @@ class DiklatController extends Controller
             ->paginate($perPage, ['*'], 'diklat_page');
 
         // === HLC Management (Admin Input) ===
-        $adminQuery = HLCManajement::where('nrp', $karyawan->nrp);
+        $adminQuery = HLCManajement::active()->where('nrp', $karyawan->nrp);
 
         if ($search) {
             $adminQuery->where(function ($q) use ($search) {
@@ -106,7 +106,7 @@ class DiklatController extends Controller
             ->paginate($perPage, ['*'], 'admin_page');
 
         // === Diklat Eksternal ===
-        $eksternalQuery = DiklatEksternal::with('program')->where('nrp', $karyawan->nrp);
+        $eksternalQuery = DiklatEksternal::active()->with('program')->where('nrp', $karyawan->nrp);
 
         if ($search) {
             $eksternalQuery->whereHas('program', function ($q) use ($search) {
@@ -334,7 +334,8 @@ class DiklatController extends Controller
         $tahun = Carbon::parse($diklat->tanggal_mulai)->year;
         $bulan = Carbon::parse($diklat->tanggal_mulai)->month;
 
-        $diklat->delete();
+        $deletedBy = auth()->user()->nrp ?? 'null';
+        $diklat->softDelete($deletedBy);
 
         // update rekap jika status approved
         if ($diklat->status === 'approved') {

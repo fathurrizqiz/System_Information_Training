@@ -13,7 +13,7 @@ class MateriController extends Controller
     {
         // Parent null → root folder.
         // Parent id → isi folder.
-        $query = MateriModel::where('parent_id', $folderId);
+        $query = MateriModel::active()->where('parent_id', $folderId);
 
         if(auth()->user()->hasRole('admin_diklat')) {   
         }else {
@@ -147,7 +147,8 @@ class MateriController extends Controller
             Storage::disk('public')->delete($materi->file_path);
         }
 
-        $materi->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $materi->softDelete($softDeletedBy);
 
         // return response()->json([
         //     'success' => true,

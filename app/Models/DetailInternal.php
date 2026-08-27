@@ -3,16 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\CustomSoftDelete;
 
 class DetailInternal extends Model
 {
+    use CustomSoftDelete;
     protected $table = 'detail_internal';
     protected $fillable = [
         'program_id',
         'nama_diklat',
         'keterangan',
         'pengajar',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
     ];
+
+    protected $casts = [
+        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
+    ];    
 
     public function program()
     {

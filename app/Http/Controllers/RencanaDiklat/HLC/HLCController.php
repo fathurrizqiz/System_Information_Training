@@ -20,8 +20,8 @@ class HLCController extends Controller
 {
     public function index()
     {
-        $karyawan = Karyawans::all();
-        $program = ProgramHlc::with('hlc.karyawan')->latest()->get();
+        $karyawan = Karyawans::active()->get();
+        $program = ProgramHlc::active()->with('hlc.karyawan')->latest()->get();
         $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
 
         return Inertia::render('RencanaDiklat/HLC/index', [
@@ -161,7 +161,8 @@ class HLCController extends Controller
     public function destroyProgram($id)
     {
         $delete = ProgramHlc::findOrFail($id);
-        $delete->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $delete->softDelete($softDeletedBy);
 
         return redirect()->route('diklat.hlc.admin');
     }
@@ -223,11 +224,8 @@ class HLCController extends Controller
     public function destroyDetail($id)
     {
         $hlc = HLCManajement::findOrFail($id);
-        $nrp = $hlc->nrp;
-        $tahun = date('Y', strtotime($hlc->tanggal_mulai));
-        $bulan = date('n', strtotime($hlc->tanggal_mulai));
-
-        $hlc->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $hlc->softDelete($softDeletedBy);
 
         // Jalankan rekap ulang setelah hapus agar total jam di rekap berkurang
         // $this->updateRekapBulanan($nrp, $tahun, $bulan);

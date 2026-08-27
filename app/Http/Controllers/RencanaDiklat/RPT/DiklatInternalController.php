@@ -20,7 +20,7 @@ class DiklatInternalController extends Controller
     {
         $search = $request->input('search');
 
-        $programs = PendidikanFormalModels::with(['details.aksi'])
+        $programs = PendidikanFormalModels::active()->with(['details.aksi'])
             ->when($search, function ($query) use ($search) {
                 $query->where('nama_program', 'ILIKE', "%{$search}%")
                     ->orWhereHas('details', function ($query) use ($search) {
@@ -68,14 +68,16 @@ class DiklatInternalController extends Controller
     public function destroyProgram($id)
     {
         $delete = PendidikanFormalModels::findOrFail($id);
-        $delete->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $delete->softDelete($softDeletedBy);
         return redirect()->route('PF.index');
     }
 
     public function destroyDetail($id)
     {
         $delete = DetailInternal::findOrFail($id);
-        $delete->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $delete->softDelete($softDeletedBy);
         return redirect()->route('PF.index');
     }
 

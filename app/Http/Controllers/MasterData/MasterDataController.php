@@ -15,7 +15,7 @@ class MasterDataController extends Controller
     public function index()
     {
         // Ambil data karyawan dengan semua relasi diklat
-        $data = Karyawans::with([
+        $data = Karyawans::active()->with([
             'diklatByNrp',
             'diklatHlc',
             'diklatEksternal',
@@ -133,10 +133,6 @@ class MasterDataController extends Controller
         return back()->with('success', 'Target jam berhasil diperbarui.');
     }
 
-    public function createkaryawan()
-    {
-        return Inertia::render('MasterData/addkaryawan');
-    }
 
     public function storekaryawan(Request $request)
     {
@@ -182,8 +178,8 @@ class MasterDataController extends Controller
         $karyawan->diklat()->delete();
         $karyawan->diklatHlc()->delete();
 
-        // Baru hapus karyawannya
-        $karyawan->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $karyawan->softDelete($softDeletedBy);
 
         return redirect()->back()->with('success', 'Karyawan dan riwayat diklatnya berhasil dihapus.');
     }

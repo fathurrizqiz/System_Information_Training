@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\CustomSoftDelete;
 
 class HLCManajement extends Model
 {
+    use CustomSoftDelete;
     protected $table = 'diklat_hlc';
     protected $fillable = [
         'program_id',
@@ -24,6 +26,17 @@ class HLCManajement extends Model
         'uploaded_at',
         'catatan_verifikasi',
         'catatan_penolakan',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
+    ];
+
+    protected $casts = [
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'uploaded_at' => 'datetime',
+        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
     public function kehadiran()

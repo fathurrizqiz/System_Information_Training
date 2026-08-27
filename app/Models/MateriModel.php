@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\CustomSoftDelete;
 
 class MateriModel extends Model
 {
+    use CustomSoftDelete;
     protected $table = 'materi_library';
     protected $fillable = [
         'title',
@@ -16,7 +18,15 @@ class MateriModel extends Model
         'status',
         'reject_reason',
         'type',
-        'parent_id'
+        'parent_id',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
+    ];
+
+    protected $casts = [
+        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
     // Relasi ke parent (folder induk)

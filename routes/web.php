@@ -252,6 +252,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/Admin/Eksternal/storeDetail', [NonFormalController::class, 'storeDetailbyADMIN'])->name('Eksternal.Tersertivikasi.storeDetail');
     Route::PUT('/Admin/Eksternal/storeDetail/update/{id}', [NonFormalController::class, 'updateDetailbyADMIN'])->name('Eksternal.Tersertivikasi.updateDetailbyADMIN');
     Route::delete('/Admin/Eksternal/destroyDetailbyADMIN/{id}', [NonFormalController::class, 'destroyDetailbyADMIN'])->name('Eksternal.Tersertivikasi.destroyDetailbyADMIN');
+
+    // Trash
+    Route::get('/Trash',[SettingsController::class,'trash'])->name('trash');
+    Route::post('{type}/{id}/restore', [SettingsController::class, 'restore'])->name('trash.restore')->where('type', '[a-zA-Z]+'); 
+    Route::delete('{type}/{id}/force', [SettingsController::class, 'forceDelete'])->name('trash.force-delete')->where('type', '[a-zA-Z]+');
 });
 
 require __DIR__ . '/settings.php';

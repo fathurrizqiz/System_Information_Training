@@ -4,16 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use \App\Traits\CustomSoftDelete;
 
 class NoHpKaryawan extends Model
 {
+    use CustomSoftDelete;
     protected $table = 'no_hp_karyawan';
     protected $fillable = [
         'nama',
         'nomor_wa',
         'bagian',
         'nrp',
-        'email'
+        'email',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
+    ];
+    protected $casts = [
+        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
     /**

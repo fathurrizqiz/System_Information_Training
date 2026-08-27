@@ -21,8 +21,8 @@ class NonFormalController extends Controller
 {
     public function index()
     {
-        $karyawan = Karyawans::all();
-        $program = ProgramEksternal::with('eksternal.karyawan')->latest()->get();
+        $karyawan = Karyawans::active()->get();
+        $program = ProgramEksternal::active()->with('eksternal.karyawan')->latest()->get();
         $templates = WaTemplate::all(['id', 'nama_template', 'slug']);
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index', [
             'karyawan' => $karyawan,
@@ -218,21 +218,23 @@ class NonFormalController extends Controller
     public function destroyDetail($id)
     {
         $eksternal = DiklatEksternal::findOrFail($id);
-        $eksternal->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $eksternal->softDelete($softDeletedBy);
 
         // Update rekap
-        $this->updateRekapBulanan(
-            $eksternal->nrp,
-            date('Y', strtotime($eksternal->tanggal_mulai)),
-            date('n', strtotime($eksternal->tanggal_mulai))
-        );
+        // $this->updateRekapBulanan(
+        //     $eksternal->nrp,
+        //     date('Y', strtotime($eksternal->tanggal_mulai)),
+        //     date('n', strtotime($eksternal->tanggal_mulai))
+        // );
 
         return redirect()->back()->with('success', 'Detail diklat eksternal dihapus');
     }
     public function destroyProgram($id)
     {
         $program = ProgramEksternal::findOrFail($id);
-        $program->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $program->softDelete($softDeletedBy);
         return redirect()->back()->with('success', 'Program diklat eksternal dihapus');
     }
 

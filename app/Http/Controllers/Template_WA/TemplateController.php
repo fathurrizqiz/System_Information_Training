@@ -11,7 +11,7 @@ class TemplateController extends Controller
 {
     public function index()
     {
-        $template = WaTemplate::latest()->get();
+        $template = WaTemplate::active()->latest()->get();
         return Inertia::render('Jadwal/Template/index', [
             'templates' => $template
         ]);
@@ -33,7 +33,8 @@ class TemplateController extends Controller
     public function destroy($id)
     {
         $template = WaTemplate::findOrFail($id);
-        $template->delete();
+        $softDeletedBy = auth()->user()->nrp ?? 'null';
+        $template->softDelete($softDeletedBy);
 
         return redirect()->back()->with('success', 'Template berhasil dihapus.');
     }

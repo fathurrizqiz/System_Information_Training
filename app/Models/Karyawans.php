@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\CustomSoftDelete;
 
 class Karyawans extends Model
 {
+    use CustomSoftDelete;
     public $timestamps = false;
     protected $table = 'karyawans';
     protected $fillable = [
@@ -19,8 +21,16 @@ class Karyawans extends Model
         'klinis_non_klinis',
         'jenis_kelamin',
         'tanggal_mulai_akumulasi_promosi',
+        'is_deleted',
+        'deleted_at',
+        'deleted_by'
     ];
 
+        protected $casts = [
+        'tmt' => 'date',
+        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
+    ];
     
     // MasterDataModels.php
 
