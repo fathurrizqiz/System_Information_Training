@@ -4,10 +4,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { toast } from 'vue3-toastify';
-// import { ArrowLeftIcon, DocumentCheckIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps<{
     detail_id: number;
+    periode_id: number; // <-- TAMBAHKAN INI
     test: any;
 }>();
 
@@ -26,47 +26,31 @@ const questions = ref(
 );
 
 function save() {
-    // Debug 1: tampilkan props.detail_id
-    // console.log('Detail ID:', props.detail_id);
-
-    // // Debug 2: tampilkan questions saat ini
-    // console.log('Questions payload:', questions.value);
-
-    // Kirim request POST
     router.post(
         '/DiklatInternal/posttest',
         {
             detail_id: props.detail_id,
+            periode_id: props.periode_id, // <-- KIRIM PERIODE_ID KE BACKEND
             questions: questions.value,
         },
         {
             onSuccess: (page) => {
-        // DEBUG: Lihat apa saja isi props yang dikirim dari Laravel
-        console.log('SEMUA PROPS DARI BACKEND:', page.props);
+                const downloadUrl = (page.props as any)?.auto_download_url || (page.props.flash as any)?.auto_download_url;
 
-        // Coba cek apakah auto_download_url ada langsung di dalam page.props (tanpa .flash)
-        const downloadUrl = (page.props as any)?.auto_download_url || (page.props.flash as any)?.auto_download_url;
-
-        console.log('URL Download yang ditangkap:', downloadUrl);
-
-        if (downloadUrl) {
-            toast.success('Post-Test selesai! Sertifikat sedang diunduh otomatis...');
-            
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.setAttribute('target', '_blank');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } else {
-            toast.success('Post-Test Berhasil disimpan!');
-        }
-    },
+                if (downloadUrl) {
+                    toast.success('Post-Test selesai! Sertifikat sedang diunduh otomatis...');
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.setAttribute('target', '_blank');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    toast.success('Post-Test Berhasil disimpan!');
+                }
+            },
             onError: (errors) => {
                 toast.error('Pastikan Data Terisi dengan Benar!', errors);
-            },
-            onFinish: () => {
-                console.log('Request selesai');
             },
         },
     );

@@ -35,28 +35,42 @@ class PostPreeController extends Controller
 {
 
 
-    public function preTest($detailId)
+    public function preTest($detailId, Request $request)
     {
+        $periodeId = $request->query('periode_id');
+
+        if (!$periodeId) {
+            return redirect()->back()->withErrors(['error' => 'Periode harus dipilih terlebih dahulu.']);
+        }
         $tests = PostPreeDetailInternal::with('questions.choices')
             ->where('detail_program_id', $detailId)
+            ->where('periode_id', $periodeId)
             ->where('type', 'pree')
             ->first();
 
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/PrePostTest/PreTest', [
             'detail_id' => $detailId,
+            'periode_id' => (int) $periodeId,
             'test' => $tests
         ]);
     }
 
-    public function postTest($detailId)
+    public function postTest($detailId, Request $request)
     {
+        $periodeId = $request->query('periode_id');
+
+        if (!$periodeId) {
+            return redirect()->back()->withErrors(['error' => 'Periode harus dipilih terlebih dahulu.']);
+        }
         $tests = PostPreeDetailInternal::with('questions.choices')
             ->where('detail_program_id', $detailId)
+            ->where('periode_id', $periodeId)
             ->where('type', 'post')
             ->first();
 
         return Inertia::render('RencanaDiklat/RPT/PendidikanFormal/PrePostTest/Postest', [
             'detail_id' => $detailId,
+            'periode_id' => (int) $periodeId,
             'test' => $tests
         ]);
     }
@@ -77,8 +91,10 @@ class PostPreeController extends Controller
     {
         \Log::info("saveQuestions called", ['type' => $type, 'payload' => $request->all()]);
 
+        // 1. TAMBAHKAN VALIDASI periode_id
         $request->validate([
             'detail_id' => 'required|integer|exists:detail_internal,id',
+            'periode_id' => 'required|integer|exists:periode_detail_internal,id', // <-- WAJIB ADA
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',
             'questions.*.choices' => 'required|array|min:2',
@@ -86,14 +102,17 @@ class PostPreeController extends Controller
             'questions.*.choices.*.is_correct' => 'boolean'
         ]);
 
-        // --- TEMUKAN ATAU BUAT TEST ---
+        // 2. TAMBAHKAN periode_id DI DALAM firstOrCreate
+        // Ini memastikan setiap periode memiliki record test-nya sendiri-sendiri
         $test = PostPreeDetailInternal::firstOrCreate([
             'detail_program_id' => $request->detail_id,
+            'periode_id' => $request->periode_id, // <-- INI KUNCINYA
             'type' => $type,
         ]);
-        \Log::info("Test record", ['test_id' => $test->id]);
 
-        // Hapus semua question lama agar bersih
+        \Log::info("Test record", ['test_id' => $test->id, 'periode_id' => $test->periode_id]);
+
+        // Hapus semua question lama HANYA untuk test_id periode ini (aman karena test_id sudah spesifik)
         $deleted = QuestionTestDetailInternal::where('test_id', $test->id)->delete();
         \Log::info("Deleted old questions", ['count' => $deleted]);
 
@@ -155,64 +174,91 @@ class PostPreeController extends Controller
 
     public function submitTest(Request $request)
     {
+        Log::info("=== SUBMIT TEST DIPANGGIL ===", [
+            'nrp' => $request->nrp,
+            'type' => $request->type,
+            'periode_id' => $request->periode_id // Tambahkan log ini untuk debugging
+        ]);
+
+        // 1. VALIDASI: Tambahkan periode_id agar wajib ada dan valid
         $request->validate([
             'answers' => 'required|array',
             'type' => 'required|in:pree,post',
             'detail_id' => 'required|integer|exists:detail_internal,id',
-            'nrp' => 'required',
+            'periode_id' => 'required|integer|exists:periode_detail_internal,id', // <-- WAJIB ADA
+            'nrp' => 'required|string',
         ]);
 
-        // 1. Validasi Peserta
+        Log::info("=== LOLOS VALIDASI, MULAI PROSES ===");
+
+        // 2. VALIDASI PESERTA: Cek apakah NRP ini diundang KHUSUS untuk periode ini
         $peserta = PeriodeBagianDetailInternal::where('nrp', $request->nrp)
             ->where('detail_program_id', $request->detail_id)
+            ->where('periode_id', $request->periode_id) // <-- INI KUNCINYA (Mencegah orang periode lain mengisi)
             ->first();
 
         if (!$peserta) {
-            abort(403, 'Anda tidak terdaftar sebagai peserta.');
+            // Gunakan withErrors agar bisa ditangkap oleh onError di Vue (toast error)
+            return back()->withErrors([
+                'nrp' => 'Maaf, NRP Anda tidak terdaftar atau tidak diundang untuk periode ini.'
+            ])->withInput();
         }
 
-        // 2. Cek Duplikasi Jawaban
-        $exists = UserAnswerPostPreeDetail::where('nrp', $request->nrp)
-            ->whereIn('question_id', array_keys($request->answers))
-            ->exists();
-
-        if ($exists) {
-            return back()->with('error', 'Anda sudah mengerjakan test ini.');
+        // 3. CEK DUPlikasi: Cek apakah peserta sudah mengerjakan test tipe ini di periode ini
+        if ($request->type === 'pree' && $peserta->pree_done_at) {
+            return back()->withErrors(['general' => 'Anda sudah mengerjakan Pre-Test untuk periode ini.']);
+        }
+        if ($request->type === 'post' && $peserta->post_done_at) {
+            return back()->withErrors(['general' => 'Anda sudah mengerjakan Post-Test untuk periode ini.']);
         }
 
-        // 3. Simpan Jawaban & Hitung Nilai
+        // 4. AMBIL DATA TEST: Pastikan mengambil soal milik periode ini, bukan periode lain
+        $test = PostPreeDetailInternal::where('detail_program_id', $request->detail_id)
+            ->where('periode_id', $request->periode_id) // <-- FILTER PERIODE
+            ->where('type', $request->type)
+            ->firstOrFail();
+
+        // 5. SIMPAN JAWABAN & HITUNG NILAI
         $totalScore = 0;
         foreach ($request->answers as $questionId => $choiceId) {
             $choice = QuestionChoices::find($choiceId);
+            $question = QuestionTestDetailInternal::find($questionId);
 
+            // Simpan jawaban
             UserAnswerPostPreeDetail::create([
+                'test_id' => $test->id, // <-- PENTING: Ikat jawaban ke test_id periode ini
                 'question_id' => $questionId,
                 'choice_id' => $choiceId,
                 'nrp' => $request->nrp,
                 'is_correct' => $choice ? $choice->is_correct : false,
             ]);
 
-            // Hitung skor langsung di sini untuk efisiensi
-            $question = QuestionTestDetailInternal::find($questionId);
+            // Hitung skor
             if ($question && $choice && $choice->is_correct) {
                 $totalScore += $question->bobot;
             }
         }
         $totalScore = round($totalScore, 2);
 
-        // 4. Update Status (Pre / Post)
+        // 6. UPDATE STATUS PENGERJAAN
         if ($request->type === 'post') {
             $peserta->update(['post_done_at' => now()]);
         } else {
             $peserta->update(['pree_done_at' => now()]);
         }
 
-        // 5. Penting: Refresh data agar status terbaru terbaca oleh query rekap & sertifikat
+        // Refresh agar data terbaru terbaca oleh fungsi di bawahnya
         $peserta->refresh();
 
-        // 6. Update Jam Diklat (Jika Post Test sudah done)
+        Log::info("=== STATUS TERBARU ===", [
+            'peserta_id' => $peserta->id,
+            'post_done_at' => $peserta->post_done_at,
+            'pree_done_at' => $peserta->pree_done_at,
+        ]);
+
+        // 7. UPDATE REKAP BULANAN & GENERATE SERTIFIKAT
         if ($peserta->post_done_at) {
-            $periode = $peserta->periode;
+            $periode = $peserta->periode; // Ini sekarang aman karena $peserta sudah terikat periode yang benar
             if ($periode) {
                 $this->updateRekapBulanan(
                     $peserta->nrp,
@@ -222,13 +268,14 @@ class PostPreeController extends Controller
             }
         }
 
-        // 7. Cek & Generate Sertifikat (Hanya jika Pre & Post sudah Done)
-        // Manual Download
+        Log::info("=== SEBELUM PANGGIL checkAndGenerateCertificateAuto ===");
+
         $this->checkAndGenerateCertificate($peserta);
-        // AUTO DOWNLOAD
         $certGeneratedId = $this->checkAndGenerateCertificateAuto($peserta);
 
-        // 8. Cukup Satu Return di akhir
+        Log::info("=== SETELAH checkAndGenerateCertificateAuto ===", ['result' => $certGeneratedId]);
+
+        // 8. RETURN HASIL
         return back()
             ->with('success', 'Jawaban berhasil disimpan!')
             ->with('nilai_akhir', $totalScore)
@@ -262,13 +309,33 @@ class PostPreeController extends Controller
     // auto download sertifikat jika sudah ada
     protected function checkAndGenerateCertificateAuto($peserta)
     {
-        // 1. Cek apakah sudah pernah dibuat atau tes belum selesai
-        if ($peserta->sertifikat_generated_at)
+        if ($peserta->sertifikat_generated_at) {
+            Log::info("Auto-Generate Skip: sertifikat sudah pernah dibuat", ['peserta_id' => $peserta->id]);
             return false;
-        if (!$peserta->post_done_at || !$peserta->pree_done_at)
+        }
+
+        if (!$peserta->post_done_at || !$peserta->pree_done_at) {
+            Log::info("Auto-Generate Skip: pre/post belum lengkap", [
+                'peserta_id' => $peserta->id,
+                'post_done_at' => $peserta->post_done_at,
+                'pree_done_at' => $peserta->pree_done_at,
+            ]);
             return false;
-        if (!$peserta->periode || !$peserta->periode->detail)
+        }
+
+        if (!$peserta->periode) {
+            Log::warning("Auto-Generate Gagal: relasi periode() null", ['peserta_id' => $peserta->id, 'periode_id' => $peserta->periode_id]);
             return false;
+        }
+
+        if (!$peserta->periode->detail) {
+            Log::warning("Auto-Generate Gagal: relasi periode->detail() null", [
+                'peserta_id' => $peserta->id,
+                'periode_id' => $peserta->periode->id,
+                'detail_id_di_periode' => $peserta->periode->detail_id ?? 'kolom detail_id tidak ada',
+            ]);
+            return false;
+        }
 
         try {
             // 2. Ambil materi
@@ -591,8 +658,10 @@ class PostPreeController extends Controller
 
         $periode = $tokenData->periode;
 
+        // 1. PERBAIKAN: Tambahkan filter periode_id agar soal yang diambil spesifik untuk periode ini
         $test = PostPreeDetailInternal::with('questions.choices')
             ->where('detail_program_id', $periode->detail_id)
+            ->where('periode_id', $periode->id) // <--- TAMBAHKAN BARIS INI
             ->where('type', $type)
             ->firstOrFail();
 
@@ -602,8 +671,8 @@ class PostPreeController extends Controller
             ->where('periode_id', $periode->id)
             ->get()
             ->pluck('karyawan.bagian')
-            ->filter() // Hilangkan yang null
-            ->unique() // Hindari duplikat bagian
+            ->filter()
+            ->unique()
             ->values()
             ->toArray();
 
@@ -611,11 +680,11 @@ class PostPreeController extends Controller
             'test' => $test,
             'type' => $type,
             'detail_id' => $periode->detail_id,
+            'periode_id' => $periode->id,
             'token' => $tokenData->token,
-            // Cek apakah user sedang login. Jika ya, kirim NRP-nya, jika tidak null
             'user_nrp' => auth()->check() ? auth()->user()->nrp : null,
             'karyawans' => $karyawans,
-
+            'allowed_bagians' => $allowed_bagians,
         ]);
     }
 

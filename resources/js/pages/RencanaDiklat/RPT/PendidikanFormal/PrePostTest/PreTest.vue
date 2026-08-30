@@ -4,31 +4,31 @@ import QuestionForm from '@/components/postpree/QuestionForm.vue';
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
-// import { ArrowLeftIcon, AcademicCapIcon } from '@heroicons/vue';
 
 const props = defineProps<{
   detail_id: number;
+  periode_id: number; 
   test: any;
 }>();
 
 const questions = ref(props.test?.questions || []);
 
 function save() {
-  // console.log('Saving questions:', questions.value, 'detail_id:', props.detail_id);
   router.post('/DiklatInternal/preetest', {
     detail_id: props.detail_id,
+    periode_id: props.periode_id, // <-- KIRIM PERIODE_ID KE BACKEND
     questions: questions.value
-  },{
-    onSuccess:() => {
+  }, {
+    onSuccess: () => {
       toast.success('Pree-Test Berhasil disimpan');
     },
-    onError(errors){
-      toast.error('Pastikan Data Terisi dengan Benar!:', errors);
+    onError(errors) {
+      toast.error('Pastikan Data Terisi dengan Benar!', errors);
     }
   });
 }
-
 </script>
+
 
 <template>
   <AppLayout>

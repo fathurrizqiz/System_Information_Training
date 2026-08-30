@@ -25,6 +25,7 @@ use App\Http\Controllers\RencanaDiklat\RPT\PresensiDetailController;
 use App\Http\Controllers\RencanaDiklat\RPT\SertifikatController;
 use App\Http\Controllers\report\GenerateReportController;
 use App\Http\Controllers\report\ReportController;
+use App\Http\Controllers\SettingsMenu\SearchController;
 use App\Http\Controllers\SettingsMenu\SettingsController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
@@ -254,9 +255,14 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/Admin/Eksternal/destroyDetailbyADMIN/{id}', [NonFormalController::class, 'destroyDetailbyADMIN'])->name('Eksternal.Tersertivikasi.destroyDetailbyADMIN');
 
     // Trash
-    Route::get('/Trash',[SettingsController::class,'trash'])->name('trash');
-    Route::post('{type}/{id}/restore', [SettingsController::class, 'restore'])->name('trash.restore')->where('type', '[a-zA-Z]+'); 
+    Route::get('/Trash', [SettingsController::class, 'trash'])->name('trash');
+    Route::post('{type}/{id}/restore', [SettingsController::class, 'restore'])->name('trash.restore')->where('type', '[a-zA-Z]+');
     Route::delete('{type}/{id}/force', [SettingsController::class, 'forceDelete'])->name('trash.force-delete')->where('type', '[a-zA-Z]+');
+
+    // Search
+    Route::get('/searchAll', [SearchController::class, 'index'])->name('search.index');
+    Route::post('/execute', [SearchController::class, 'search'])->name('search.execute');
+    
 });
 
 require __DIR__ . '/settings.php';

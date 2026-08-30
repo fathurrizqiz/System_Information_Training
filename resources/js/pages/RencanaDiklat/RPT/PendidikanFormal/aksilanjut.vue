@@ -231,6 +231,24 @@ const kirimNotifikasi = (periodeId: number, tipe: string) => {
         );
     }
 };
+
+function goToPreTest() {
+    if (!selectedPeriode.value) {
+        toast.error('Pilih periode terlebih dahulu!');
+        return;
+    }
+    // Tambahkan ?periode_id=... di akhir URL
+    router.get(`/DiklatInternal/pree/${props.detail_id}?periode_id=${selectedPeriode.value}`);
+}
+
+function goToPostTest() {
+    if (!selectedPeriode.value) {
+        toast.error('Pilih periode terlebih dahulu!');
+        return;
+    }
+    // Tambahkan ?periode_id=... di akhir URL
+    router.get(`/DiklatInternal/post/${props.detail_id}?periode_id=${selectedPeriode.value}`);
+}
 </script>
 
 <template>
@@ -461,9 +479,7 @@ const kirimNotifikasi = (periodeId: number, tipe: string) => {
                 <div class="flex flex-col gap-3 sm:flex-row">
                     <button
                         @click="
-                            router.get(
-                                `/DiklatInternal/pree/${props.detail_id}`,
-                            )
+                            goToPreTest()
                         "
                         class="flex-1 rounded-md bg-teal-600 px-4 py-2.5 text-white"
                     >
@@ -471,9 +487,9 @@ const kirimNotifikasi = (periodeId: number, tipe: string) => {
                     </button>
                     <button
                         @click="
-                            router.get(
-                                `/DiklatInternal/post/${props.detail_id}`,
-                            )
+                          
+                               goToPostTest()
+                            
                         "
                         class="flex-1 rounded-md bg-blue-600 px-4 py-2.5 text-white"
                     >

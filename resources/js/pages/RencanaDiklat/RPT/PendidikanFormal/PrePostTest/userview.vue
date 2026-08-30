@@ -32,6 +32,7 @@ interface Props {
     user_nrp: string | null;
     karyawans: Karyawan[]; 
     allowed_bagians: string[];
+    periode_id:number;
 }
 
 const props = defineProps<Props>();
@@ -85,14 +86,29 @@ const submitTest = () => {
             answers: answers.value,
             type: props.test.type,
             detail_id: props.detail_id,
+            periode_id: props.periode_id,
             nrp: nrp.value,
         },
         {
-            onSuccess: () => {
-                toast.success("Jawaban berhasil disimpan.");
+            onSuccess: (page) => {
+                const flash = page.props.flash as any;
+                const downloadUrl = flash?.auto_download_url;
+
+                if (downloadUrl) {
+                    toast.success('Post-Test selesai! Sertifikat sedang diunduh otomatis...');
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.setAttribute('target', '_blank');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    toast.success('Jawaban berhasil disimpan.');
+                }
             },
             onError: (errors) => {
                 console.error("Request errors:", errors);
+                toast.error('ID Anda tidak diperkenankan mengikuti test');
                 loading.value = false;
             },
         }

@@ -78,6 +78,23 @@ import { Head, Link } from '@inertiajs/vue3';
                         </div>
                     </div>
                 </Link>
+                <Link :href="route('search.index')" class="group relative overflow-hidden bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                    <div class="flex flex-col h-full space-y-4">
+                        <div class="w-12 h-12 bg-yellow-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-yellow-600">
+                           <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800 dark:text-white">Search File</h3>
+                            <p class="text-sm text-slate-500 mt-1">Fitur untuk mencari file secara keseluruhan</p>
+                        </div>
+                        <div class="pt-4 flex items-center text-yellow-600 font-bold text-xs uppercase tracking-widest">
+                            Cari File Ekstra <svg class="w-4 h-4 ml-1 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7l5 5m0 0l-5 5m5-5H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                    </div>
+                </Link>
 
                
                 

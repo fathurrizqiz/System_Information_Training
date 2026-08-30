@@ -24,7 +24,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-        
+
         $countJadwal = 0;
         $countPersetujuan = 0;
         $countInbox = 0;
@@ -71,7 +71,7 @@ class HandleInertiaRequests extends Middleware
             // Kadang statusnya 'Terjadwal', 'Pending', atau 'Diundang'.
             try {
                 $statusInbox = ['Menunggu Persetujuan', 'Terjadwal', 'Pending', 'Diundang']; // Tambahkan status lain jika perlu
-                
+
                 $countInbox = DB::table(DB::raw("(
                     SELECT id FROM diklat_hlc 
                     WHERE nrp = '$nrp' 
@@ -115,6 +115,13 @@ class HandleInertiaRequests extends Middleware
                 'jadwal_count' => $countJadwal,
                 'persetujuan_count' => $countPersetujuan,
                 'inbox_count' => $countInbox, // Key ini harus konsisten
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'nilai_akhir' => $request->session()->get('nilai_akhir'),
+                'auto_download_url' => $request->session()->get('auto_download_url'),
             ],
         ];
     }
