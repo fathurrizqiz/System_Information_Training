@@ -25,7 +25,7 @@ trait CustomSoftDelete
      */
     public function scopeWithTrashed($query)
     {
-        return $query;
+        return $query->withoutGlobalScope();
     }
 
     /**

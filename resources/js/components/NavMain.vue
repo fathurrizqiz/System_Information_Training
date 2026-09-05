@@ -22,7 +22,7 @@ const { state } = useSidebar(); // Ambil state 'expanded' atau 'collapsed'
 <template>
     <SidebarGroup class="px-2 py-2">
         <SidebarGroupLabel class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Platform
+            MENU
         </SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">

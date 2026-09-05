@@ -17,25 +17,7 @@ interface TrashItem {
 
 const props = defineProps<{
     trash: TrashItem[];
-    auth: {
-        user: {
-            id: number;
-            name: string;
-            roles: any;
-        } | null;
-    };
 }>();
-
-// Cek Role Admin
-const rawRoles = props.auth?.user?.roles || [];
-const roleNames = computed(() =>
-    rawRoles.map((r: any) => (typeof r === 'string' ? r : r.name)),
-);
-const isAdmin = computed(
-    () =>
-        roleNames.value.includes('admin_diklat') ||
-        roleNames.value.includes('super-admin'),
-);
 
 // State Pencarian & Filter Kategori
 const searchQuery = ref('');
@@ -68,7 +50,14 @@ const filteredTrash = computed(() => {
     });
 });
 
-// Aksi Restore & Force Delete
+const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
+};
+
 const restoreItem = (id: number, type: string) => {
     if (confirm('Pulihkan data ini?')) {
         router.post(
@@ -88,14 +77,6 @@ const forceDeleteItem = (id: number, type: string) => {
         });
     }
 };
-
-const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleString('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
-};
 </script>
 
 <template>
@@ -111,7 +92,7 @@ const formatDate = (dateString: string | null) => {
                             class="flex items-center gap-2 text-2xl font-bold text-gray-800"
                         >
                             <TrashIcon class="h-8 w-8 text-red-500" />
-                            Recycle Bin
+                            Recycle Bin (Super Admin)
                         </h1>
                         <p class="mt-1 text-sm text-gray-500">
                             Total data terhapus:
@@ -166,11 +147,11 @@ const formatDate = (dateString: string | null) => {
                                 class="bg-gray-100 text-xs font-semibold text-gray-700 uppercase"
                             >
                                 <tr>
-                                    <th class="px-6 py-3">Nama / Judul</th>
+                                    <th class="px-6 py-3">Nama Data</th>
                                     <th class="px-6 py-3">Kategori</th>
                                     <th class="px-6 py-3">Dihapus Oleh</th>
                                     <th class="px-6 py-3">Waktu Dihapus</th>
-                                    <th class="px-6 py-3 text-right">Aksi</th>
+                                    <th class="px-6 py-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 bg-white">
@@ -183,8 +164,8 @@ const formatDate = (dateString: string | null) => {
                                         <TrashIcon
                                             class="mx-auto mb-2 h-10 w-10 text-gray-300"
                                         />
-                                        Tidak ada data yang sesuai di recycle
-                                        bin.
+                                        Trash kosong, tidak ada data yang
+                                        dihapus.
                                     </td>
                                 </tr>
 
@@ -194,7 +175,7 @@ const formatDate = (dateString: string | null) => {
                                     :key="`${item.type}-${item.id}`"
                                     class="transition hover:bg-gray-50"
                                 >
-                                    <!-- Nama Data & Detail (Subtext) -->
+                                    <!-- Nama Data & Detail -->
                                     <td class="px-6 py-4">
                                         <div class="font-medium text-gray-900">
                                             {{ item.nama_data }}
@@ -216,10 +197,8 @@ const formatDate = (dateString: string | null) => {
                                         </span>
                                     </td>
 
-                                    <!-- Dihapus Oleh -->
-                                    <td
-                                        class="px-6 py-4 whitespace-nowrap text-gray-500"
-                                    >
+                                    <!-- Info User Penghapus -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         <span
                                             v-if="item.deleted_by"
                                             class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset"
@@ -230,11 +209,11 @@ const formatDate = (dateString: string | null) => {
                                             v-else
                                             class="text-xs text-gray-400 italic"
                                         >
-                                            Sistem
+                                            Sistem / Tidak Tercatat
                                         </span>
                                     </td>
 
-                                    <!-- Waktu Dihapus -->
+                                    <!-- Waktu Penghapusan -->
                                     <td
                                         class="px-6 py-4 whitespace-nowrap text-gray-500"
                                     >
@@ -243,7 +222,7 @@ const formatDate = (dateString: string | null) => {
 
                                     <!-- Tombol Aksi -->
                                     <td
-                                        class="space-x-2 px-6 py-4 text-right whitespace-nowrap"
+                                        class="space-x-2 px-6 py-4 text-center whitespace-nowrap"
                                     >
                                         <button
                                             @click="
@@ -254,7 +233,6 @@ const formatDate = (dateString: string | null) => {
                                             Restore
                                         </button>
                                         <button
-                                            v-if="isAdmin"
                                             @click="
                                                 forceDeleteItem(
                                                     item.id,

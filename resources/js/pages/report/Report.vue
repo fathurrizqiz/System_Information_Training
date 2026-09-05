@@ -228,21 +228,23 @@ const chartRankingOptions = computed(() => ({
 }));
 
 const toggleRow = (kategori: string) => {
-    expandedRows.value.includes(kategori)
-        ? (expandedRows.value = expandedRows.value.filter(
-              (i) => i !== kategori,
-          ))
-        : expandedRows.value.push(kategori);
+    if (expandedRows.value.includes(kategori)) {
+        expandedRows.value = expandedRows.value.filter((i) => i !== kategori);
+    } else {
+        expandedRows.value.push(kategori);
+    }
 };
+
 const unitKerjaKey = (kategori: string, unitKerja: string) =>
     `${kategori}::${unitKerja}`;
+
 const toggleUnitKerja = (kategori: string, unitKerja: string) => {
     const key = unitKerjaKey(kategori, unitKerja);
-    expandedUnitKerjas.value.includes(key)
-        ? (expandedUnitKerjas.value = expandedUnitKerjas.value.filter(
-              (i) => i !== key,
-          ))
-        : expandedUnitKerjas.value.push(key);
+    if (expandedUnitKerjas.value.includes(key)) {
+        expandedUnitKerjas.value = expandedUnitKerjas.value.filter((i) => i !== key);
+    } else {
+        expandedUnitKerjas.value.push(key);
+    }
 };
 const toggleKaryawan = (nrp: string) => {
     expandedKaryawan.value = expandedKaryawan.value === nrp ? null : nrp;
@@ -316,7 +318,7 @@ const downloadExcelBagian = (namaBagian: string) => {
                         Periode:
                         <span class="font-semibold text-slate-700">{{
                             teksPeriode
-                        }}</span>
+                        }} Aktif</span>
                     </p>
                 </div>
                 <button
@@ -506,7 +508,7 @@ const downloadExcelBagian = (namaBagian: string) => {
                     <div>
                         <button
                             @click="downloadExcelBagian(item.kategori)"
-                            class="rounded-full shadow-2xl cursor-pointer bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                            class="rounded shadow-2xl cursor-pointer bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
                         >
                             Download Laporan
                         </button>

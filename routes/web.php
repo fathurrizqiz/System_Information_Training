@@ -30,6 +30,7 @@ use App\Http\Controllers\SettingsMenu\SettingsController;
 use App\Http\Controllers\Silabus\SilabusController;
 use App\Http\Controllers\RencanaDiklat\HLC\HLCController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\SuperAdmin\TrackTrashController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use App\Http\Controllers\Template_WA\TemplateController;
 use App\Http\Controllers\WaLog\WaLogController;
@@ -168,7 +169,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/MasterData/destroy-karyawan/{id}', [MasterDataController::class, 'destroykaryawan']);
 
         // super admin
-
+        Route::get('/super-admin/track-trash', [TrackTrashController::class, 'index'])->name('superadmin.track-trash');
 
         Route::get('/super-admin/users', [UserController::class, 'index'])->name('superadmin.users.index');
         Route::post('/super-admin/users/store', [UserController::class, 'store'])->name('superadmin.users.store');
