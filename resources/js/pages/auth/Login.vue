@@ -21,7 +21,6 @@
             <input
               v-model="form.nrp"
               type="text"
-              placeholder="Contoh: 123456"
               class="w-full rounded-lg border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
             <span v-if="form.errors.nrp" class="mt-1 text-xs text-red-600">
@@ -55,7 +54,7 @@
               />
               Tampilkan Password
             </label>
-            <a href="#" class="font-medium text-blue-600 hover:text-blue-700">Lupa Password?</a>
+            
           </div>
 
           <!-- Submit Button -->

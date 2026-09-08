@@ -127,7 +127,7 @@ const mainNavItems = computed(() => [
         title: 'Settings (ADMIN DIKLAT)',
         href: '/Settings',
         icon: Settings,
-        roles: ['admin_diklat'],
+        // roles: ['admin_diklat'],
     },
     {
         title: 'Indbox',

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-// Import ikon jika Anda menggunakan library seperti Lucide atau Heroicons, 
-// tapi di sini saya akan gunakan SVG standar agar langsung jalan.
+import { Head, Link, usePage } from '@inertiajs/vue3';
+
+const page = usePage<MyPageProps>();
+// Ambil roles dengan aman
+const rawRole = page.props.auth?.user?.roles || []; 
+const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
 </script>
 
 <template>
@@ -24,7 +27,7 @@ import { Head, Link } from '@inertiajs/vue3';
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- CARD 1: Daftar Nomor -->
-                <Link :href="route('nohp.index')" class="group relative overflow-hidden bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <Link :href="route('nohp.index')" v-if="roles.includes('admin_diklat') || roles.includes('super-admin')" class="group relative overflow-hidden bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <svg class="w-24 h-24 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M17 2H7C5.89 2 5 2.89 5 4v16c0 1.1.9 2 2 2h10c1.11 0 2-.9 2-2V4c0-1.11-.89-2-2-2zm-5 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
                     </div>
@@ -43,7 +46,7 @@ import { Head, Link } from '@inertiajs/vue3';
                 </Link>
 
                 
-                <Link :href="route('template.index')" class="group relative overflow-hidden bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <Link :href="route('template.index')" v-if="roles.includes('admin_diklat') || roles.includes('super-admin')" class="group relative overflow-hidden bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <svg class="w-24 h-24 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
                     </div>
