@@ -56,7 +56,23 @@ class DiklatController extends Controller
             : 10;
 
         // === Diklat Karyawan (User Input) ===
-        $diklatQuery = DiklatKaryawan::active()->where('nrp', $karyawan->nrp);
+        $diklatQuery = DiklatKaryawan::active()
+            ->select([
+                'id',
+                'nrp',
+                'tanggal_mulai',
+                'tanggal_selesai',
+                'nama_diklat',
+                'pengajar',
+                'penyelenggara',
+                'jam_diklat',
+                'diklat',
+                'status',
+                'file_path',
+                'created_at',
+                'updated_at',
+            ])
+            ->where('nrp', $karyawan->nrp);
 
         if ($search) {
             $diklatQuery->where(function ($q) use ($search) {
@@ -78,15 +94,37 @@ class DiklatController extends Controller
         }
 
         $diklat = $diklatQuery->latest()
-            ->paginate($perPage, ['*'], 'diklat_page');
+            ->simplePaginate($perPage, ['*'], 'diklat_page')
+            ->withQueryString();
 
         // === HLC Management (Admin Input) ===
-        $adminQuery = HLCManajement::active()->where('nrp', $karyawan->nrp);
+        $adminQuery = HLCManajement::active()
+            ->select([
+                'id',
+                'nrp',
+                'tanggal_mulai',
+                'tanggal_selesai',
+                'nama_diklat',
+                'pengajar',
+                'penyelenggara',
+                'jam_diklat',
+                'diklat',
+                'status',
+                'dokumen',
+                'created_at',
+                'updated_at',
+                'program_id',
+            ])
+            ->with('hlc:id,nama_program')
+            ->where('nrp', $karyawan->nrp);
 
         if ($search) {
             $adminQuery->where(function ($q) use ($search) {
                 $q->where('nama_diklat', 'ILIKE', "%{$search}%")
-                    ->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
+                    ->orWhere('penyelenggara', 'ILIKE', "%{$search}%")
+                    ->orWhereHas('hlc', function ($sq) use ($search) {
+                        $sq->where('nama_program', 'ILIKE', "%{$search}%");
+                    });
             });
         }
 
@@ -103,15 +141,31 @@ class DiklatController extends Controller
         }
 
         $admin = $adminQuery->latest()
-            ->paginate($perPage, ['*'], 'admin_page');
+            ->simplePaginate($perPage, ['*'], 'admin_page')
+            ->withQueryString();
 
         // === Diklat Eksternal ===
-        $eksternalQuery = DiklatEksternal::active()->with('program')->where('nrp', $karyawan->nrp);
+        $eksternalQuery = DiklatEksternal::active()
+            ->select([
+                'id',
+                'nrp',
+                'program_id',
+                'tanggal_mulai',
+                'tanggal_selesai',
+                'jam_diklat',
+                'penyelenggara',
+                'status',
+                'dokumen',
+            ])
+            ->with('program:id,nama_diklat')
+            ->where('nrp', $karyawan->nrp);
 
         if ($search) {
-            $eksternalQuery->whereHas('program', function ($q) use ($search) {
-                $q->where('nama_diklat', 'ILIKE', "%{$search}%");
-            })->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
+            $eksternalQuery->where(function ($q) use ($search) {
+                $q->whereHas('program', function ($sq) use ($search) {
+                    $sq->where('nama_diklat', 'ILIKE', "%{$search}%");
+                })->orWhere('penyelenggara', 'ILIKE', "%{$search}%");
+            });
         }
 
         if ($filterDateFrom) {
@@ -127,7 +181,8 @@ class DiklatController extends Controller
         }
 
         $eksternal = $eksternalQuery->latest()
-            ->paginate($perPage, ['*'], 'eksternal_page');
+            ->simplePaginate($perPage, ['*'], 'eksternal_page')
+            ->withQueryString();
 
         return Inertia::render('Diklat/Diklat', [
             'diklat' => $diklat,
