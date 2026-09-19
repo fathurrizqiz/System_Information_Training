@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HeaderMenu from '@/components/HeaderMenu.vue';
+// import HeaderMenu from '@/components/HeaderMenu.vue';
 import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProgramModal from '@/pages/RencanaDiklat/HLC/ProgramModal.vue';
@@ -7,6 +7,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue3-toastify';
+import { formatDate } from '@/helpers/date';
 
 // --- Breadcrumbs & Menu ---
 const breadcrumbs: BreadcrumbItem[] = [
@@ -778,12 +779,12 @@ const generateReport = (id: number, jenis: string) => {
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                            {{ row.tanggal_mulai }}
+                                            {{ formatDate(row.tanggal_mulai) }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                            {{ row.tanggal_selesai }}
+                                            {{ formatDate(row.tanggal_selesai) }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"

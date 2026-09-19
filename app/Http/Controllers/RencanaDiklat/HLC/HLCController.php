@@ -14,6 +14,7 @@ use App\Models\WaTemplate;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class HLCController extends Controller
@@ -124,10 +125,10 @@ class HLCController extends Controller
             $file = $request->file('dokumen');
 
             // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
-            $namaFile = ($validated['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $namaFile = ($validated['nrp'] ?? 'HLC') . '_' . time() . '.' . $file->getClientOriginalExtension();
 
             // Simpan file ke dalam folder 'public/dokumen_diklat'
-            $path = $file->storeAs('dokumen_diklat', $namaFile, 'public');
+            $path = $file->storeAs('dokumen_diklat', $namaFile, 's3');
 
             // Simpan path/nama file ke array validate untuk dimasukkan ke database
             $validated['dokumen'] = $path;
@@ -145,6 +146,22 @@ class HLCController extends Controller
         // PINDAH
 
         return redirect()->route('diklat.hlc.admin');
+    }
+
+    public function preview($id)
+    {
+        $diklat = HLCManajement::findOrFail($id);
+        $disk = Storage::disk('s3');
+
+        $path = $diklat->dokumen ?? $diklat->bukti_hadir;
+
+        if (!$path || !$disk->exists($path)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return redirect()->away(
+            $disk->temporaryUrl($path, now()->addMinutes(30))
+        );
     }
     public function updateProgram(Request $request, $id)
     {
@@ -307,7 +324,7 @@ class HLCController extends Controller
             $path = $file->storeAs(
                 'bukti_kehadiran',
                 $namaFile,
-                'public'
+                's3'
             );
 
             $diklat->update([

@@ -114,6 +114,13 @@ const getStatusLabel = (status) => {
         ? 'Sedang Berlangsung'
         : status
 }
+
+function lihatBukti(id: number) {
+    window.open(route('preview.bukti.eksternal', id), '_blank');
+}
+function lihatUndangan(id: number) {
+    window.open(route('Diklat.eksternal.preview', id), '_blank');
+}
 </script>
 
 <template>
@@ -179,7 +186,7 @@ const getStatusLabel = (status) => {
                                     
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <a v-if="item.bukti_hadir" :href="`/storage/${item.bukti_hadir}`" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                                    <a v-if="item.bukti_hadir" @click="lihatBukti(item.id)" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" /></svg>
                                         Lihat
                                     </a>
@@ -279,14 +286,14 @@ const getStatusLabel = (status) => {
                                 <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
                                     <div v-if="selectedData.dokumen" class="flex-1">
                                         <h3 class="mb-2 text-sm font-semibold text-slate-500 uppercase dark:text-slate-400">Dokumen Undangan</h3>
-                                        <a :href="`/storage/${selectedData.dokumen}`" target="_blank" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+                                        <a @click="lihatUndangan(selectedData.id)" target="_blank" class="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" /></svg>
                                             Lihat Dokumen
                                         </a>
                                     </div>
                                     <div v-if="selectedData.bukti_hadir" class="flex-1">
                                         <h3 class="mb-2 text-sm font-semibold text-slate-500 uppercase dark:text-slate-400">Bukti Kehadiran</h3>
-                                        <a :href="`/storage/${selectedData.bukti_hadir}`" target="_blank" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+                                        <a @click="lihatBukti(selectedData.id)" target="_blank" class="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" /></svg>
                                             Lihat Bukti
                                         </a>

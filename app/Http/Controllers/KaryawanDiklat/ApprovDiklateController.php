@@ -35,13 +35,17 @@ class ApprovDiklateController extends Controller
                 });
             })
             ->when($status, function ($query, $status) {
-            $query->where('status', $status);
-        })
+                $query->where('status', $status);
+            })
             ->latest()
             ->get()
             ->map(function ($item) {
                 $item->link_file = $item->file_path
-                    ? \Storage::url(str_replace('public/', '', $item->file_path))
+                    // ? \Storage::url(str_replace('public/', '', $item->file_path))
+                    ? Storage::disk('s3')->temporaryUrl(
+                        $item->file_path,
+                        now()->addMinutes(10)
+                    )
                     : null;
 
                 // Tambahkan nama_karyawan ke level atas agar mudah diakses di Vue

@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/Persetujuan', [EksternalAdminController::class, 'Persetujuan'])->name('persetujuan.index');
         Route::get('/Persetujuan/Eksternal', [EksternalAdminController::class, 'EksternalAdmin'])->name('persetujuan.eksternal');
         Route::put('/Persetujuan/Eksternal/konfirmasi/{id}', [NonFormalController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.eksternal');
+        Route::get('/Persetujuan/Eksternal/bukti/{id}', [NonFormalController::class, 'previewBukti'])->name('preview.bukti.eksternal');
         // HLC
         Route::get('/Persetujuan/HLC', [HLCAdminController::class, 'index'])->name('persetujuan.hlc');
         Route::put('/Persetujuan/HLC/konfirmasi/{id}', [HLCController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.hlc');
@@ -123,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
 
         //Pendidikan Non Formal / Eksternal
         Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
+        Route::get('/RencanaDiklat/RPT/PN/preview/{id}', [NonFormalController::class, 'preview'])->name('Diklat.eksternal.preview');
         Route::post('/RencanaDiklat/RPT/PN/Program', [NonFormalController::class, 'storeProgram'])->name('Diklat.eksternal-program');
         Route::post('/RencanaDiklat/RPT/PN/Detail', [NonFormalController::class, 'storeDetail'])->name('Diklat.eksternal-detail');
         Route::put('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'updateDetail'])->name('Diklat.eksternal-detail-update');
@@ -151,6 +153,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/HLC/Home/manajemen', [HLCController::class, 'index'])->name('diklat.hlc.admin');
         Route::post('/HLC/Home/storeProgram', [HLCController::class, 'storeProgram'])->name('diklat.hlc.admin.store-program');
         Route::post('/HLC/Home/storeDetail', [HLCController::class, 'storeDetail'])->name('diklat.hlc.admin.store-detail');
+        Route::get('/HLC/Home/preview/{id}', [HLCController::class, 'preview'])->name('diklat.hlc.admin.preview');
         Route::post('/HLC/Home/updateProgram/{id}', [HLCController::class, 'updateProgram'])->name('diklat.hlc.admin.update-program');
         Route::post('/HLC/Home/updateDetail/{id}', [HLCController::class, 'updateDetail'])->name('diklat.hlc.admin.update-detail');
         Route::post('/HLC/Home/destroyProgram/{id}', [HLCController::class, 'destroyProgram'])->name('diklat.hlc.admin.destroy-program');

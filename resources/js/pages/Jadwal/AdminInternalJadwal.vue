@@ -55,6 +55,7 @@ const props = defineProps<{
     filters: { search: string };
     templates: any[];
     meet: Jadwal['meeting'];
+    today: string;
     auth: {
         user: {
             id: number;
@@ -95,22 +96,17 @@ function goHP() {
     router.get('/NoHP');
 }
 
-const parseLocalDate = (dateStr: string) => {
-    return new Date(dateStr + 'T00:00:00');
+const dateKey = (dateStr: string) => dateStr.slice(0, 10);
+
+const todayKey = () => {
+    return props.today;
 };
 
 // helper waktu
 const isPelatihanAktif = (tanggalMulai: string, tanggalSelesai: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = todayKey();
 
-    const mulai = parseLocalDate(tanggalMulai);
-    mulai.setHours(0, 0, 0, 0);
-
-    const selesai = parseLocalDate(tanggalSelesai);
-    selesai.setHours(23, 59, 59, 999);
-
-    return today >= mulai && today <= selesai;
+    return today >= dateKey(tanggalMulai) && today <= dateKey(tanggalSelesai);
 };
 
 // konfirmasi hadir HLC
@@ -166,17 +162,24 @@ const lihatDokumen = (dokumen: string) => {
     window.open(`/storage/${dokumen}`, '_blank');
 };
 
+const lihatDokumenEksternal = (id: number) => {
+    window.open(
+        `/RencanaDiklat/RPT/PN/preview/${id}`,
+        '_blank',
+        'noopener,noreferrer',
+    );
+};
+const lihatDokumenHLC = (id: number) => {
+    window.open(`/HLC/Home/preview/${id}`, '_blank', 'noopener,noreferrer');
+};
+
 // helper hari terakhir
 const isHariTerakhir = (tanggalSelesai: string) => {
-    const today = new Date();
+    return todayKey() === dateKey(tanggalSelesai);
+};
 
-    const selesai = new Date(tanggalSelesai);
-
-    return (
-        today.getFullYear() === selesai.getFullYear() &&
-        today.getMonth() === selesai.getMonth() &&
-        today.getDate() === selesai.getDate()
-    );
+const belumMulai = (tanggalMulai: string) => {
+    return todayKey() < dateKey(tanggalMulai);
 };
 
 // function open modal upload bukti
@@ -659,14 +662,7 @@ const absenHariIniHLC = (hlc: any) => {
                                         <td
                                             class="px-6 py-4 font-bold text-emerald-600"
                                         >
-                                            <button
-                                                @click="
-                                                    lihatDokumen(hlc.dokumen)
-                                                "
-                                                class="underline hover:text-emerald-700"
-                                            >
-                                                Lihat Dokumen
-                                            </button>
+                                            {{ hlc.nama_diklat }}
                                         </td>
                                         <td
                                             class="px-6 py-4 text-slate-500 italic"
@@ -765,10 +761,8 @@ const absenHariIniHLC = (hlc: any) => {
                                                 </div>
                                                 <div
                                                     v-else-if="
-                                                        new Date() <
-                                                        new Date(
-                                                            hlc.tanggal_mulai +
-                                                                'T00:00:00',
+                                                        belumMulai(
+                                                            hlc.tanggal_mulai,
                                                         )
                                                     "
                                                 >
@@ -953,10 +947,8 @@ const absenHariIniHLC = (hlc: any) => {
                                             </div>
                                             <div
                                                 v-else-if="
-                                                    new Date() <
-                                                    new Date(
-                                                        hlc.tanggal_mulai +
-                                                            'T00:00:00',
+                                                    belumMulai(
+                                                        hlc.tanggal_mulai,
                                                     )
                                                 "
                                                 class="text-center"
@@ -1027,7 +1019,9 @@ const absenHariIniHLC = (hlc: any) => {
                                         >
                                             <button
                                                 @click="
-                                                    lihatDokumen(eks.dokumen)
+                                                    lihatDokumenEksternal(
+                                                        eks.id,
+                                                    )
                                                 "
                                                 class="underline"
                                             >
@@ -1149,10 +1143,8 @@ const absenHariIniHLC = (hlc: any) => {
                                                 <!-- Belum mulai -->
                                                 <div
                                                     v-else-if="
-                                                        new Date() <
-                                                        new Date(
-                                                            eks.tanggal_mulai +
-                                                                'T00:00:00',
+                                                        belumMulai(
+                                                            eks.tanggal_mulai,
                                                         )
                                                     "
                                                 >
@@ -1210,7 +1202,7 @@ const absenHariIniHLC = (hlc: any) => {
                                         }}</span
                                     >
                                     <button
-                                        @click="lihatDokumen(eks.dokumen)"
+                                        @click="lihatDokumenEksternal(eks.id)"
                                         class="shrink-0 rounded border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 active:bg-blue-100"
                                     >
                                         Dokumen
@@ -1242,14 +1234,12 @@ const absenHariIniHLC = (hlc: any) => {
                                                         isHariTerakhir(
                                                             eks.tanggal_selesai,
                                                         ) &&
-                                                        sudahAbsenHariIniHLC(
-                                                            eks,
-                                                        )
+                                                        sudahAbsenHariIni(eks)
                                                     "
                                                     @click="
                                                         openModalUpload(
                                                             eks,
-                                                            'hlc',
+                                                            'eksternal',
                                                         )
                                                     "
                                                     class="w-full rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white shadow-sm active:bg-emerald-700"
@@ -1260,13 +1250,9 @@ const absenHariIniHLC = (hlc: any) => {
                                                     v-else-if="
                                                         eks.status ===
                                                             'Setuju' &&
-                                                        !sudahAbsenHariIniHLC(
-                                                            eks,
-                                                        )
+                                                        !sudahAbsenHariIni(eks)
                                                     "
-                                                    @click="
-                                                        absenHariIniHLC(eks)
-                                                    "
+                                                    @click="absenHariIni(eks)"
                                                     class="w-full rounded-lg bg-blue-600 py-3 text-sm font-bold text-white shadow-sm active:bg-blue-700"
                                                 >
                                                     Absen Hari Ini
@@ -1279,7 +1265,7 @@ const absenHariIniHLC = (hlc: any) => {
                                                         v-if="
                                                             eks.status ===
                                                                 'Setuju' &&
-                                                            sudahAbsenHariIniHLC(
+                                                            sudahAbsenHariIni(
                                                                 eks,
                                                             )
                                                         "
@@ -1316,10 +1302,8 @@ const absenHariIniHLC = (hlc: any) => {
                                             </div>
                                             <div
                                                 v-else-if="
-                                                    new Date() <
-                                                    new Date(
-                                                        eks.tanggal_mulai +
-                                                            'T00:00:00',
+                                                    belumMulai(
+                                                        eks.tanggal_mulai,
                                                     )
                                                 "
                                                 class="text-center"

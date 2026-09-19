@@ -13,7 +13,7 @@ interface MateriItem {
     title: string;
     type: 'folder' | 'file';
     status: string;
-    file_path?: string | null;
+    link_file?: string | null;
     parent_id?: number | null;
 }
 
@@ -295,7 +295,7 @@ const deleteMateri = (id: number) => {
 
                             <a
                                 v-if="item.type === 'file' && item.file_path"
-                                :href="`/storage/${item.file_path}`"
+                                :href="item.link_file"
                                 target="_blank"
                                 class="flex items-center justify-center w-full rounded-lg bg-indigo-50 py-2 text-[11px] font-bold text-indigo-600 active:bg-indigo-100 uppercase"
                             >

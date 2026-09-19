@@ -33,16 +33,16 @@ class JadwalInternalController extends Controller
 
         // 1. Internal (Diperbarui agar membawa data Aksi & Token)
         $internal = PeriodeUtama::with([
-                'detail', 
-                'meeting', 
-                'aksi', 
-                'tokens',
-                'peserta' => function($q) use ($user) {
-                    $q->where('nrp', $user->nrp);
-                }
-            ])
+            'detail',
+            'meeting',
+            'aksi',
+            'tokens',
+            'peserta' => function ($q) use ($user) {
+                $q->where('nrp', $user->nrp);
+            }
+        ])
             ->whereHas('peserta', function ($peserta) use ($user, $isAdminDiklat) {
-                if (! $isAdminDiklat) {
+                if (!$isAdminDiklat) {
                     $peserta->where('nrp', $user->nrp);
                 }
             })
@@ -173,7 +173,8 @@ class JadwalInternalController extends Controller
             'jadwalHLC' => $hlc,
             'jadwalEksternal' => $eksternal,
             'filters' => ['search' => $search],
-            'templates' => $templates
+            'templates' => $templates,
+            'today' => Carbon::today()->toDateString(),
         ]);
     }
 
@@ -190,9 +191,9 @@ class JadwalInternalController extends Controller
             ->when(
                 $search,
                 fn($q) =>
-                // Karena nama_diklat ada di tabel detail_internal, 
-                // pencarian 'where' harus diarahkan ke tabel relasinya
-                $q->whereHas('detail', fn($det) => $det->where('nama_diklat', 'ILIKE', "%{$search}%"))
+                    // Karena nama_diklat ada di tabel detail_internal, 
+                    // pencarian 'where' harus diarahkan ke tabel relasinya
+                    $q->whereHas('detail', fn($det) => $det->where('nama_diklat', 'ILIKE', "%{$search}%"))
             )
             ->orderBy('tanggal', 'asc')
             ->get();
@@ -227,7 +228,7 @@ class JadwalInternalController extends Controller
             ->when(
                 $search,
                 fn($q) =>
-                $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                    $q->where('nama_diklat', 'ILIKE', "%{$search}%")
             )
             ->get();
 
@@ -258,7 +259,7 @@ class JadwalInternalController extends Controller
             ->when(
                 $search,
                 fn($q) =>
-                $q->where('nama_diklat', 'ILIKE', "%{$search}%")
+                    $q->where('nama_diklat', 'ILIKE', "%{$search}%")
             )
             ->get();
         return Inertia::render('Jadwal/History/Historyjadwal', [

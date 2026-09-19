@@ -88,12 +88,16 @@ const submit = () => {
         toast.error('Tanggal mulai dan tanggal selesai harus diisi');
         return;
     }
-    if (!form.value.jam_diklat || form.value.jam_diklat < 1 || form.value.jam_diklat > 9) {
+    if (
+        !form.value.jam_diklat ||
+        form.value.jam_diklat < 1 ||
+        form.value.jam_diklat > 9
+    ) {
         toast.error('Jam diklat optimalnya antara 1 dan 9 jam');
         return;
     }
 
-    if(!form.value.dokumen && !props.detail) {
+    if (!form.value.dokumen && !props.detail) {
         toast.error('Undangan harus diunggah');
         return;
     }
@@ -179,7 +183,6 @@ const today = new Date().toISOString().split('T')[0];
                         v-model="form.tanggal_mulai"
                         type="date"
                         :min="today"
-                        
                         @keydown.prevent
                         class="w-full rounded-lg border-slate-300"
                     />
@@ -190,7 +193,6 @@ const today = new Date().toISOString().split('T')[0];
                         v-model="form.tanggal_selesai"
                         type="date"
                         :min="form.tanggal_mulai || today"
-                        
                         @keydown.prevent
                         class="w-full rounded-lg border-slate-300"
                     />
@@ -200,10 +202,10 @@ const today = new Date().toISOString().split('T')[0];
                         >Jam Diklat (Per Hari)</label
                     >
                     <Input
-                        :value="form.jam_diklat"
+                        type="number"
                         @input="
                             form.jam_diklat = $event.target.value.replace(
-                                /\D/g,
+                                /[^0-9]/g,
                                 '',
                             )
                         "

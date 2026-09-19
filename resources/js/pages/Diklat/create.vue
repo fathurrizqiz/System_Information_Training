@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import { toast } from 'vue3-toastify';
 // import diklat from '@/routes/diklat';
 import Input from '@/components/ui/input/Input.vue';
@@ -15,6 +15,10 @@ interface Karyawan {
 const props = defineProps<{
     karyawan: Karyawan[];
 }>();
+
+const validKaryawan = computed(() =>
+    props.karyawan.filter((karyawan): karyawan is Karyawan => karyawan != null),
+);
 
 // State untuk form data
 const form = reactive({
@@ -32,7 +36,6 @@ const form = reactive({
 
 // Fungsi untuk submit form
 function submit() {
-
     if (form.jam_diklat < 1 || form.jam_diklat > 9) {
         toast.error('Jam diklat per hari harus antara 1-9 jam.');
         return;
@@ -140,7 +143,7 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                 />
                 <datalist id="karyawan-list">
                     <option
-                        v-for="k in karyawan"
+                        v-for="k in validKaryawan"
                         :key="k.id"
                         :value="k.nama_karyawan"
                     ></option>
@@ -183,10 +186,14 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                 <label class="block text-sm font-medium text-gray-700"
                     >Evaluasi Materi</label
                 >
-                
-                <select class="w-36 h-10 border" v-model="form.evaluasimateri" id="">
-                    <option value="">Evaluasi Materi</option> 
-                    <option value="Bagus">Bagus</option> 
+
+                <select
+                    class="h-10 w-36 border"
+                    v-model="form.evaluasimateri"
+                    id=""
+                >
+                    <option value="">Evaluasi Materi</option>
+                    <option value="Bagus">Bagus</option>
                     <option value="Lumayan">Lumayan</option>
                     <option value="kurang">Kurang</option>
                 </select>
@@ -196,10 +203,14 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                 <label class="block text-sm font-medium text-gray-700"
                     >Evaluasi Pengajar</label
                 >
-                
-                <select class="w-42 h-10 border" v-model="form.evaluasipengajar" id="">
-                    <option value="">Evaluasi Pengajar</option> 
-                    <option value="Bagus">Bagus</option> 
+
+                <select
+                    class="h-10 w-42 border"
+                    v-model="form.evaluasipengajar"
+                    id=""
+                >
+                    <option value="">Evaluasi Pengajar</option>
+                    <option value="Bagus">Bagus</option>
                     <option value="Lumayan">Lumayan</option>
                     <option value="kurang">Kurang</option>
                 </select>
@@ -215,9 +226,9 @@ document.getElementById('tanggal_selesai')?.setAttribute('max', today);
                     id="file"
                     type="file"
                     @input="
-                        form.file = (
-                            $event.target as HTMLInputElement
-                        ).files?.[0]
+                        form.file =
+                            ($event.target as HTMLInputElement).files?.[0] ??
+                            null
                     "
                     accept=".pdf"
                     class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"

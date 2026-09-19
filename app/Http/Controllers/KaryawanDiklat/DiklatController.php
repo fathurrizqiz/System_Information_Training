@@ -208,7 +208,10 @@ class DiklatController extends Controller
     {
         $user = auth()->user();
 
-        $karyawan = Karyawans::where('nrp', $user->nrp)->first();
+        $karyawan = Karyawans::active()
+            ->select(['id', 'nama_karyawan', 'nrp'])
+            ->orderBy('nama_karyawan')
+            ->get();
 
         return Inertia::render('Diklat/create', [
             'karyawan' => $karyawan
@@ -251,7 +254,9 @@ class DiklatController extends Controller
             // 2. Buat nama file kustom
             $filename = 'diklat_mandiri_' . time() . '_' . rand(10, 99) . '.' . $extension;
 
-            $validated['file_path'] = $file->storeAs('diklat_files', $filename, 'public');
+            $path = $file->storeAs('diklat_files', $filename, 's3'); // Simpan path/object key ke database 
+            $validated['file_path'] = $path;
+            // $validated['file_path'] = $file->storeAs('diklat_files', $filename, 'public');
         }
 
         $diklat = DiklatKaryawan::create($validated);
@@ -302,12 +307,15 @@ class DiklatController extends Controller
     public function preview($id)
     {
         $diklat = DiklatKaryawan::findOrFail($id);
+        $disk = Storage::disk('s3');
 
-        if (!$diklat->file_path || !Storage::disk('public')->exists($diklat->file_path)) {
+        if (!$diklat->file_path || !$disk->exists($diklat->file_path)) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        return response()->file(storage_path('app/public/' . $diklat->file_path));
+        return redirect()->away(
+            $disk->temporaryUrl($diklat->file_path, now()->addMinutes(30))
+        );
     }
     public function edit($id)
     {
@@ -362,7 +370,7 @@ class DiklatController extends Controller
         // Proses upload file jika ada
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('diklat_files', 'public');
+            $path = $file->store('diklat_files', 's3');
             $validated['file_path'] = $path;
         }
 

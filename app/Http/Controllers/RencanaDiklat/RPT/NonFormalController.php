@@ -77,7 +77,7 @@ class NonFormalController extends Controller
             $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
 
             // Simpan file ke dalam folder 'public/diklat_eksternal'
-            $path = $file->storeAs('diklat_eksternal_', $namaFile, 'public');
+            $path = $file->storeAs('diklat_eksternal_', $namaFile, 's3');
 
             // Simpan path/nama file ke array validate untuk dimasukkan ke database
             $validate['dokumen'] = $path;
@@ -92,6 +92,20 @@ class NonFormalController extends Controller
         //     date('n', strtotime($eksternal->tanggal_mulai))
         // );
         return redirect()->route('Diklat.eksternal');
+    }
+
+    public function preview($id)
+    {
+        $diklat = DiklatEksternal::findOrFail($id);
+        $disk = Storage::disk('s3');
+
+        if (!$diklat->dokumen || !$disk->exists($diklat->dokumen)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return redirect()->away(
+            $disk->temporaryUrl($diklat->dokumen, now()->addMinutes(30))
+        );
     }
 
     public function updateRekapBulanan($nrp, $tahun, $bulan)
@@ -306,13 +320,13 @@ class NonFormalController extends Controller
             $file = $request->file('dokumen');
 
             $namaFile =
-                $diklat->nrp . '_' . time() . '.' .
+                $diklat->nrp . 'bukti_eksternal_' . time() . '.' .
                 $file->getClientOriginalExtension();
 
             $path = $file->storeAs(
                 'bukti_kehadiran',
                 $namaFile,
-                'public'
+                's3'
             );
 
             $diklat->update([
@@ -326,6 +340,21 @@ class NonFormalController extends Controller
             'Bukti berhasil dikirim dan menunggu verifikasi admin.'
         );
     }
+
+    public function previewBukti($id)
+    {
+        $diklat = DiklatEksternal::findOrFail($id);
+        $disk = Storage::disk('s3');
+
+        if (!$diklat->bukti_hadir || !$disk->exists($diklat->bukti_hadir)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return redirect()->away(
+            $disk->temporaryUrl($diklat->bukti_hadir, now()->addMinutes(30))
+        );
+    }
+    
     // konfirmasi admin
 
     public function approveKehadiran($id)

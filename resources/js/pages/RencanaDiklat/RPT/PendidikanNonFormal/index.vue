@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { formatDate } from '@/helpers/date';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage, Link } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
@@ -175,8 +176,15 @@ const hapusDetail = (detailId: number) => {
     }
 };
 
-const lihatDokumen = (dokumen: string) => {
-    window.open(`/storage/${dokumen}`, '_blank');
+// const lihatDokumen = (dokumen: string) => {
+//     window.open(`/storage/${dokumen}`, '_blank');
+// };
+const lihatDokumen = (id: number) => {
+    window.open(
+        `/RencanaDiklat/RPT/PN/preview/${id}`,
+        '_blank',
+        'noopener,noreferrer',
+    );
 };
 
 const openReasonModal = (reason: string) => {
@@ -226,28 +234,28 @@ const generateReport = (id: number, jenis: string) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <!-- 1. MODERN SWIPEABLE TAB MENU -->
-    <div class="px-5 pt-6 pb-2">
-        <div class="w-full overflow-x-auto hide-scrollbar">
-            <nav class="flex w-max min-w-full space-x-2 rounded-xl bg-slate-100 p-1.5 sm:w-auto sm:min-w-0">
-                <Link
-                    v-for="item in menuItems"
-                    :key="item.title"
-                    :href="item.href"
-                    :class="[
-                        'flex-1 shrink-0 rounded-lg px-6 py-2.5 text-center text-sm font-bold transition-all duration-300 sm:flex-none',
-                        // Deteksi otomatis apakah menu ini sedang aktif berdasarkan URL
-                        page.url.startsWith(item.href)
-                            ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
-                            : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-700'
-                    ]"
+        <div class="px-5 pt-6 pb-2">
+            <div class="hide-scrollbar w-full overflow-x-auto">
+                <nav
+                    class="flex w-max min-w-full space-x-2 rounded-xl bg-slate-100 p-1.5 sm:w-auto sm:min-w-0"
                 >
-                    {{ item.title }}
-                </Link>
-            </nav>
+                    <Link
+                        v-for="item in menuItems"
+                        :key="item.title"
+                        :href="item.href"
+                        :class="[
+                            'flex-1 shrink-0 rounded-lg px-6 py-2.5 text-center text-sm font-bold transition-all duration-300 sm:flex-none',
+                            // Deteksi otomatis apakah menu ini sedang aktif berdasarkan URL
+                            page.url.startsWith(item.href)
+                                ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
+                                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-700',
+                        ]"
+                    >
+                        {{ item.title }}
+                    </Link>
+                </nav>
+            </div>
         </div>
-    </div>
-
-    
 
         <div
             class="group relative h-10 w-full overflow-hidden rounded-s-lg shadow-lg/30 md:h-32"
@@ -337,31 +345,31 @@ const generateReport = (id: number, jenis: string) => {
                     </div>
                     <div>
                         <label
-                        class="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase"
-                        >Cari Program</label
-                    >
-                    <div class="relative">
-                        <input
-                            v-model="searchQuery"
-                            @input="resetToPage1"
-                            type="text"
-                            placeholder="Ketik nama program..."
-                            class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 pr-4 pl-10 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
-                        />
-                        <svg
-                            class="absolute top-2.5 left-3 h-5 w-5 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                            class="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase"
+                            >Cari Program</label
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            ></path>
-                        </svg>
-                    </div>
+                        <div class="relative">
+                            <input
+                                v-model="searchQuery"
+                                @input="resetToPage1"
+                                type="text"
+                                placeholder="Ketik nama program..."
+                                class="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 pr-4 pl-10 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                            />
+                            <svg
+                                class="absolute top-2.5 left-3 h-5 w-5 text-slate-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                ></path>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -419,7 +427,7 @@ const generateReport = (id: number, jenis: string) => {
                     :key="prog.id"
                     class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                 >
-                <div>
+                    <div>
                         <button
                             @click="generateReport(prog.id, 'eksternal')"
                             class="rounded bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-green-700"
@@ -574,9 +582,7 @@ const generateReport = (id: number, jenis: string) => {
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
                                             <button
-                                                @click="
-                                                    lihatDokumen(detail.dokumen)
-                                                "
+                                                @click="lihatDokumen(detail.id)"
                                                 class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                                             >
                                                 Lihat Dokumen
@@ -585,12 +591,18 @@ const generateReport = (id: number, jenis: string) => {
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                            {{ detail.tanggal_mulai }}
+                                            {{
+                                                formatDate(detail.tanggal_mulai)
+                                            }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"
                                         >
-                                            {{ detail.tanggal_selesai }}
+                                            {{
+                                                formatDate(
+                                                    detail.tanggal_selesai,
+                                                )
+                                            }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-slate-600 dark:text-slate-300"

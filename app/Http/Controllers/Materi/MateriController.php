@@ -24,6 +24,12 @@ class MateriController extends Controller
             ->orderBy('type')
             ->orderBy('title')
             ->get();
+        
+        // Tambahkan URL file dari MinIO 
+        $materi->transform(function ($item) { 
+            if ($item->type === 'file' && $item->file_path) {
+                 $item->link_file = Storage::disk('s3')->temporaryUrl( $item->file_path, now()->addMinutes(30) );
+            } else { $item->link_file = null; } return $item; });
 
         $currentFolder = $folderId ? MateriModel::find($folderId) : null;
         $breadcrumb = [];
@@ -68,8 +74,11 @@ class MateriController extends Controller
             //     dd('Kondisi IF tidak terpenuhi. Type: ' . $request->type . ', HasFile: ' . $request->hasFile('file'));
             // }
 
-            if ($request->type === 'file' && $request->hasFile('file')) {
-                $path = $request->file('file')->store('materi', 'public');
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $extension = $file->getClientOriginalExtension();
+                $filename = 'diklat_perpustakaan_' . time() . '_' . rand(10, 99) . '.' . $extension;
+                $path = $file->storeAs('materi', $filename, 's3');
 
                 // === DEBUG STEP 3: Lihat hasil path dari penyimpanan file ===
                 // Jika berhasil, ini akan menampilkan path seperti 'materi/filename.jpg'

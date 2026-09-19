@@ -63,7 +63,7 @@ const processAction = (
     // Catatan: Pastikan Route di backend sesuai
     // Jika backend Anda menggunakan Route::post('/hlc/home/tolak/{id}'), gunakan url biasa
     // Jika menggunakan named route, gunakan route()
-    
+
     // Kita gunakan URL construction manual sesuai kode Anda sebelumnya
     const routeName =
         action === 'setuju'
@@ -73,38 +73,34 @@ const processAction = (
     // Data yang dikirim
     const dataPayload = action === 'tolak' ? { alasan: reason } : {};
 
-    router.post(
-        routeName,
-        dataPayload,
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    action === 'setuju'
-                        ? 'Diklat berhasil dimasukkan ke jadwal'
-                        : 'Undangan berhasil ditolak',
-                );
-                // Tutup modal jika sukses
-                if (action === 'tolak') {
-                    closeRejectModal();
-                }
-            },
-            onError: (errors) => {
-                toast.error('Terjadi kesalahan');
-                console.error(errors);
-            },
-            onFinish: () => {
-                isLoading.value = null;
-                loadingAction.value = null;
-            },
+    router.post(routeName, dataPayload, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success(
+                action === 'setuju'
+                    ? 'Diklat berhasil dimasukkan ke jadwal'
+                    : 'Undangan berhasil ditolak',
+            );
+            // Tutup modal jika sukses
+            if (action === 'tolak') {
+                closeRejectModal();
+            }
         },
-    );
+        onError: (errors) => {
+            toast.error('Terjadi kesalahan');
+            console.error(errors);
+        },
+        onFinish: () => {
+            isLoading.value = null;
+            loadingAction.value = null;
+        },
+    });
 };
 
 // Fungsi Konfirmasi dari dalam Modal
 const confirmReject = () => {
     if (!itemToReject.value) return;
-    
+
     // Validasi sederhana
     if (!rejectReason.value.trim()) {
         toast.error('Mohon isi alasan penolakan');
@@ -112,10 +108,10 @@ const confirmReject = () => {
     }
 
     processAction(
-        itemToReject.value.id, 
-        'tolak', 
-        itemToReject.value.type, 
-        rejectReason.value
+        itemToReject.value.id,
+        'tolak',
+        itemToReject.value.type,
+        rejectReason.value,
     );
 };
 
@@ -146,8 +142,16 @@ const respondImpersonate = (
     );
 };
 
-const lihatDokumen = (dokumen: string) => {
-    window.open(`/storage/${dokumen}`, '_blank');
+const lihatDokumenHLC = (dokumen: string) => {
+    window.open(`/storage/${dokumen}`, '_blank', 'noopener,noreferrer');
+};
+
+const lihatDokumenEksternal = (id: number) => {
+    window.open(
+        `/RencanaDiklat/RPT/PN/preview/${id}`,
+        '_blank',
+        'noopener,noreferrer',
+    );
 };
 </script>
 
@@ -332,181 +336,184 @@ const lihatDokumen = (dokumen: string) => {
                                     </a>
                                 </div>
                             </div>
-                        
-                        <div
-                        v-else
-                            
-                            
-                            class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900"
-                        >
-                            <div
-                                class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
-                            >
-                                <div class="flex flex-1 gap-4">
-                                    <div
-                                        class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                                    >
-                                        <svg
-                                            class="h-7 w-7"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div
-                                            class="mb-2 flex items-center gap-2"
-                                        >
-                                            <span
-                                                class="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold tracking-wider text-blue-700 uppercase dark:bg-blue-900/30 dark:text-blue-300"
-                                                >Internal HLC</span
-                                            >
-                                        </div>
-                                        <h2
-                                            class="text-xl font-bold text-slate-900 dark:text-white"
-                                        >
-                                            <span v-if="item.nama_diklat">
-                                                {{ item.nama_diklat }}
-                                            </span>
-                                            <button
-                                                v-else
-                                                @click="
-                                                    lihatDokumen(item.dokumen)
-                                                "
-                                                class="cursor-pointer rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
-                                            >
-                                                Lihat undangan
-                                            </button>
-                                        </h2>
-                                        <p
-                                            class="mt-1 text-sm text-slate-600 dark:text-slate-400"
-                                        >
-                                            Penyelenggara:
-                                            <span class="font-semibold">{{
-                                                item.penyelenggara || 'lihat undangan'
-                                            }}</span>
-                                        </p>
 
+                            <div
+                                v-else
+                                class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900"
+                            >
+                                <div
+                                    class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+                                >
+                                    <div class="flex flex-1 gap-4">
                                         <div
-                                            class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"
+                                            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                         >
-                                            <div
-                                                class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                            <svg
+                                                class="h-7 w-7"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
                                             >
-                                                <p
-                                                    class="text-xs font-medium text-slate-500"
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="mb-2 flex items-center gap-2"
+                                            >
+                                                <span
+                                                    class="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold tracking-wider text-blue-700 uppercase dark:bg-blue-900/30 dark:text-blue-300"
+                                                    >Internal HLC</span
                                                 >
-                                                    Jadwal mulai
-                                                </p>
-                                                <p
-                                                    class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
-                                                >
-                                                    {{
-                                                        formatDate(
-                                                            item.tanggal_mulai,
+                                            </div>
+                                            <h2
+                                                class="text-xl font-bold text-slate-900 dark:text-white"
+                                            >
+                                                <span v-if="item.nama_diklat">
+                                                    {{ item.nama_diklat }}
+                                                </span>
+                                                <button
+                                                    v-else
+                                                    @click="
+                                                        lihatDokumenHLC(
+                                                            item.dokumen,
                                                         )
-                                                    }}
-                                                </p>
-                                            </div>
-                                            <div
-                                                class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                                    "
+                                                    class="cursor-pointer rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                                                >
+                                                    Lihat undangan
+                                                </button>
+                                            </h2>
+                                            <p
+                                                class="mt-1 text-sm text-slate-600 dark:text-slate-400"
                                             >
-                                                <p
-                                                    class="text-xs font-medium text-slate-500"
-                                                >
-                                                    Jadwal selesai
-                                                </p>
-                                                <p
-                                                    class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
-                                                >
-                                                    {{
-                                                        formatDate(
-                                                            item.tanggal_selesai,
-                                                        )
-                                                    }}
-                                                </p>
-                                            </div>
+                                                Penyelenggara:
+                                                <span class="font-semibold">{{
+                                                    item.pengajar
+                                                }}</span>
+                                            </p>
+
                                             <div
-                                                class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                                class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"
                                             >
-                                                <p
-                                                    class="text-xs font-medium text-slate-500"
-                                                >
-                                                    Durasi
-                                                </p>
-                                                <p
-                                                    class="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400"
-                                                >
-                                                    {{ item.jam_diklat }} Jam
-                                                </p>
-                                            </div>
-                                            <div
-                                                class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
-                                            >
-                                                <p
-                                                    class="text-xs font-medium text-slate-500"
-                                                >
-                                                    Status
-                                                </p>
                                                 <div
-                                                    class="mt-1 inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                                    class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
                                                 >
-                                                    PENDING
+                                                    <p
+                                                        class="text-xs font-medium text-slate-500"
+                                                    >
+                                                        Jadwal mulai
+                                                    </p>
+                                                    <p
+                                                        class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
+                                                    >
+                                                        {{
+                                                            formatDate(
+                                                                item.tanggal_mulai,
+                                                            )
+                                                        }}
+                                                    </p>
+                                                </div>
+                                                <div
+                                                    class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                                >
+                                                    <p
+                                                        class="text-xs font-medium text-slate-500"
+                                                    >
+                                                        Jadwal selesai
+                                                    </p>
+                                                    <p
+                                                        class="mt-1 text-sm font-semibold text-slate-800 dark:text-white"
+                                                    >
+                                                        {{
+                                                            formatDate(
+                                                                item.tanggal_selesai,
+                                                            )
+                                                        }}
+                                                    </p>
+                                                </div>
+                                                <div
+                                                    class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                                >
+                                                    <p
+                                                        class="text-xs font-medium text-slate-500"
+                                                    >
+                                                        Durasi
+                                                    </p>
+                                                    <p
+                                                        class="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400"
+                                                    >
+                                                        {{
+                                                            item.jam_diklat
+                                                        }}
+                                                        Jam
+                                                    </p>
+                                                </div>
+                                                <div
+                                                    class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50"
+                                                >
+                                                    <p
+                                                        class="text-xs font-medium text-slate-500"
+                                                    >
+                                                        Status
+                                                    </p>
+                                                    <div
+                                                        class="mt-1 inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                                    >
+                                                        PENDING
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <!-- Action Buttons -->
-                                <div
-                                    class="flex shrink-0 flex-row gap-3 lg:flex-col"
-                                >
-                                    <button
-                                        @click="
-                                            handleAction(
-                                                item.id,
-                                                'setuju',
-                                                'hlc',
-                                            )
-                                        "
-                                        :disabled="isLoading === item.id"
-                                        class="inline-flex min-w-[130px] items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50"
+                                    <!-- Action Buttons -->
+                                    <div
+                                        class="flex shrink-0 flex-row gap-3 lg:flex-col"
                                     >
-                                        {{
-                                            isLoading === item.id &&
-                                            loadingAction === 'setuju'
-                                                ? 'Memproses...'
-                                                : 'Setujui'
-                                        }}
-                                    </button>
-                                    <button
-                                        @click="
-                                            handleAction(
-                                                item.id,
-                                                'tolak',
-                                                'hlc',
-                                            )
-                                        "
-                                        :disabled="isLoading === item.id"
-                                        class="inline-flex min-w-[130px] items-center justify-center rounded-2xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-50 disabled:opacity-50 dark:bg-slate-900"
-                                    >
-                                        {{
-                                            isLoading === item.id &&
-                                            loadingAction === 'tolak'
-                                                ? 'Memproses...'
-                                                : 'Tolak'
-                                        }}
-                                    </button>
+                                        <button
+                                            @click="
+                                                handleAction(
+                                                    item.id,
+                                                    'setuju',
+                                                    'hlc',
+                                                )
+                                            "
+                                            :disabled="isLoading === item.id"
+                                            class="inline-flex min-w-[130px] items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50"
+                                        >
+                                            {{
+                                                isLoading === item.id &&
+                                                loadingAction === 'setuju'
+                                                    ? 'Memproses...'
+                                                    : 'Setujui'
+                                            }}
+                                        </button>
+                                        <button
+                                            @click="
+                                                handleAction(
+                                                    item.id,
+                                                    'tolak',
+                                                    'hlc',
+                                                )
+                                            "
+                                            :disabled="isLoading === item.id"
+                                            class="inline-flex min-w-[130px] items-center justify-center rounded-2xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-50 disabled:opacity-50 dark:bg-slate-900"
+                                        >
+                                            {{
+                                                isLoading === item.id &&
+                                                loadingAction === 'tolak'
+                                                    ? 'Memproses...'
+                                                    : 'Tolak'
+                                            }}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </section>
@@ -568,7 +575,9 @@ const lihatDokumen = (dokumen: string) => {
                                         >
                                             <button
                                                 @click="
-                                                    lihatDokumen(item.dokumen)
+                                                    lihatDokumenEksternal(
+                                                        item.id,
+                                                    )
                                                 "
                                                 class="cursor-pointer rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
                                             >
@@ -577,7 +586,8 @@ const lihatDokumen = (dokumen: string) => {
                                         </p>
                                         Penyelenggara:
                                         <span class="font-semibold">{{
-                                            item.penyelenggara || 'lihat undangan'
+                                            item.penyelenggara ||
+                                            'lihat undangan'
                                         }}</span>
 
                                         <div
@@ -741,7 +751,9 @@ const lihatDokumen = (dokumen: string) => {
                 class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
             >
                 <div class="mb-4">
-                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+                    <h3
+                        class="text-xl font-bold text-slate-900 dark:text-white"
+                    >
                         Konfirmasi Penolakan
                     </h3>
                     <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -760,7 +772,6 @@ const lihatDokumen = (dokumen: string) => {
                         v-model="rejectReason"
                         rows="4"
                         class="w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-                        
                     ></textarea>
                 </div>
 
