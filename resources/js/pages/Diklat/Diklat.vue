@@ -304,8 +304,8 @@ function destroy(id: number | null) {
     });
 }
 
-const lihatDokumen = (dokumen: string) => {
-    window.open(`/storage/${dokumen}`, '_blank');
+const lihatDokumen = (id: number) => {
+    window.open(route('Diklat.eksternal.preview', { id }), '_blank');
 };
 
 // Tambahkan helper ini di script setup
@@ -346,6 +346,9 @@ function sourceLabel(source: string) {
         : source === 'admin'
           ? 'Admin Input'
           : 'Eksternal';
+}
+function viewSertifikat(id: number) {
+    window.open(route('diklat.preview', { id }), '_blank');
 }
 </script>
 
@@ -771,7 +774,7 @@ function sourceLabel(source: string) {
                                         }}</span>
                                         <button
                                             v-if="item.dokumen"
-                                            @click="lihatDokumen(item.dokumen)"
+                                            @click="lihatDokumen(item.id)"
                                             class="shrink-0 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400"
                                         >
                                             Undangan
@@ -795,7 +798,7 @@ function sourceLabel(source: string) {
                                         :class="statusBadge(item.status)"
                                     >
                                         <span
-                                            class="h-1.5 w-1.5 rounded-full bg-current opacity-70"
+                                            class="h-1.5 w-1.5 rounded-full animate-ping bg-current opacity-70"
                                         ></span>
                                         {{ item.status }}
                                     </span>
@@ -806,9 +809,7 @@ function sourceLabel(source: string) {
                                     >
                                         <a
                                             v-if="item.file_path"
-                                            :href="
-                                                route('diklat.preview', item.id)
-                                            "
+                                            @click="viewSertifikat(item.id)"
                                             title="Preview"
                                             class="rounded-lg p-2 text-blue-600 transition hover:bg-blue-50 dark:hover:bg-blue-900/30"
                                         >

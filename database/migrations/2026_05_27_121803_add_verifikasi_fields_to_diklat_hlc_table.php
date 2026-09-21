@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('diklat_hlc', function (Blueprint $table) {
-            $table->string('bukti_hadir', 255)->nullable();
+            $table->string('bukti_hadir', 100)->nullable();
             $table->enum('status_verifikasi', [
                 'belum_upload',
                 'menunggu_verifikasi',

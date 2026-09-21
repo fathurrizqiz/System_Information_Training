@@ -124,8 +124,8 @@ class HLCController extends Controller
         if ($request->hasFile('dokumen')) {
             $file = $request->file('dokumen');
 
-            // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
-            $namaFile = ($validated['nrp'] ?? 'HLC') . '_' . time() . '.' . $file->getClientOriginalExtension();
+            // Membuat nama file unik: diklat_hlc_nrp_timestamp.ekstensi
+            $namaFile = 'diklat_hlc_' . ($validated['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
 
             // Simpan file ke dalam folder 'public/dokumen_diklat'
             $path = $file->storeAs('dokumen_diklat', $namaFile, 's3');
@@ -225,6 +225,18 @@ class HLCController extends Controller
         // Total jam = (input jam per hari) * jumlah hari
         $validated['jam_diklat'] = (int) round($jamPerHari * $selisihHari);
 
+        if ($request->hasFile('dokumen')) {
+            $disk = Storage::disk('s3');
+
+            if ($hlc->dokumen && $disk->exists($hlc->dokumen)) {
+                $disk->delete($hlc->dokumen);
+            }
+
+            $file = $request->file('dokumen');
+            $namaFile = 'diklat_hlc_' . ($validated['nrp'] ?? $hlc->nrp) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $validated['dokumen'] = $file->storeAs('dokumen_diklat', $namaFile, 's3');
+        }
+
         $hlc->update($validated);
 
         if ($hlc->status === 'approved') {
@@ -318,11 +330,11 @@ class HLCController extends Controller
             $file = $request->file('dokumen');
 
             $namaFile =
-                $diklat->nrp . '_' . time() . '.' .
+                'bukti_hadir_hlc_' . $diklat->nrp . '_' . time() . '.' .
                 $file->getClientOriginalExtension();
 
             $path = $file->storeAs(
-                'bukti_kehadiran',
+                'bukti_kehadiran_hlc',
                 $namaFile,
                 's3'
             );

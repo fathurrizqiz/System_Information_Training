@@ -15,8 +15,8 @@ class MateriController extends Controller
         // Parent id → isi folder.
         $query = MateriModel::active()->where('parent_id', $folderId);
 
-        if(auth()->user()->hasRole('admin_diklat')) {   
-        }else {
+        if (auth()->user()->hasRole('admin_diklat')) {
+        } else {
             $query->where('status', 'verified');
         }
 
@@ -24,12 +24,15 @@ class MateriController extends Controller
             ->orderBy('type')
             ->orderBy('title')
             ->get();
-        
+
         // Tambahkan URL file dari MinIO 
-        $materi->transform(function ($item) { 
+        $materi->transform(function ($item) {
             if ($item->type === 'file' && $item->file_path) {
-                 $item->link_file = Storage::disk('s3')->temporaryUrl( $item->file_path, now()->addMinutes(30) );
-            } else { $item->link_file = null; } return $item; });
+                $item->link_file = Storage::disk('s3')->temporaryUrl($item->file_path, now()->addMinutes(30));
+            } else {
+                $item->link_file = null;
+            }return $item;
+        });
 
         $currentFolder = $folderId ? MateriModel::find($folderId) : null;
         $breadcrumb = [];
@@ -62,7 +65,7 @@ class MateriController extends Controller
             $request->validate([
                 'type' => 'required|in:folder,file',
                 'name' => 'required|string|max:255',
-                'file' => 'nullable|file|max:20480', // 20MB max
+                'file' => 'required_if:type,file|file|max:20480', // 20MB max
                 'parent_id' => 'nullable|exists:materi_library,id',
             ]);
 
@@ -77,7 +80,7 @@ class MateriController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $extension = $file->getClientOriginalExtension();
-                $filename = 'diklat_perpustakaan_' . time() . '_' . rand(10, 99) . '.' . $extension;
+                $filename = 'materi_diklat_' . time() . '_' . random_int(1000, 9999) . '.' . $extension;
                 $path = $file->storeAs('materi', $filename, 's3');
 
                 // === DEBUG STEP 3: Lihat hasil path dari penyimpanan file ===
@@ -153,7 +156,7 @@ class MateriController extends Controller
 
         // Hapus file jika ada
         if ($materi->file_path) {
-            Storage::disk('public')->delete($materi->file_path);
+            Storage::disk('s3')->delete($materi->file_path);
         }
 
         $softDeletedBy = auth()->user()->nrp ?? 'null';
@@ -171,7 +174,7 @@ class MateriController extends Controller
             if ($child->type === 'folder') {
                 $this->deleteFolderContents($child);
             } else if ($child->file_path) {
-                Storage::disk('public')->delete($child->file_path);
+                Storage::disk('s3')->delete($child->file_path);
             }
             $child->delete();
         }

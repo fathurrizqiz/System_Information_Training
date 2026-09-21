@@ -55,6 +55,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/Persetujuan/Eksternal/bukti/{id}', [NonFormalController::class, 'previewBukti'])->name('preview.bukti.eksternal');
         // HLC
         Route::get('/Persetujuan/HLC', [HLCAdminController::class, 'index'])->name('persetujuan.hlc');
+        Route::get('/Persetujuan/HLC/preview/{id}', [HLCAdminController::class, 'preview'])->name('persetujuan.hlc.preview');
+        Route::get('/Persetujuan/HLC/preview-bukti-hadir/{id}', [HLCAdminController::class, 'previewBuktiHadir'])->name('persetujuan.hlc.preview-bukti-hadir');
         Route::put('/Persetujuan/HLC/konfirmasi/{id}', [HLCController::class, 'approveKehadiran'])->name('konfirmasi.persetujuan.hlc');
 
 
@@ -124,13 +126,13 @@ Route::middleware(['auth'])->group(function () {
 
         //Pendidikan Non Formal / Eksternal
         Route::get('/RencanaDiklat/RPT/PN', [NonFormalController::class, 'index'])->name('Diklat.eksternal');
-        Route::get('/RencanaDiklat/RPT/PN/preview/{id}', [NonFormalController::class, 'preview'])->name('Diklat.eksternal.preview');
+         
         Route::post('/RencanaDiklat/RPT/PN/Program', [NonFormalController::class, 'storeProgram'])->name('Diklat.eksternal-program');
         Route::post('/RencanaDiklat/RPT/PN/Detail', [NonFormalController::class, 'storeDetail'])->name('Diklat.eksternal-detail');
         Route::put('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'updateDetail'])->name('Diklat.eksternal-detail-update');
         Route::delete('/RencanaDiklat/RPT/PN/Detail/{id}', [NonFormalController::class, 'destroyDetail'])->name('Diklat.eksternal-detail-destroy');
         Route::delete('/RencanaDiklat/RPT/PN/program/{id}', [NonFormalController::class, 'destroyProgram'])->name('Diklat.eksternal-program-destroy');
-        Route::post('/diklat-eksternal/upload-bukti/{id}', [NonFormalController::class, 'uploadBukti'])->name('diklat.eksternal.upload-bukti');
+        
         // send email notification
         Route::post('/jadwal-internal/send-wa', [NotifikasiController::class, 'sendWhatsappNotification'])->name('jadwal.send-wa');
         Route::post('/jadwal-eksternal/send-wa', [NotifikasiController::class, 'sendWhatsappEksternal'])->name('jadwal.eksternal.send-wa');
@@ -185,6 +187,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/impersonation/leave', [UserController::class, 'stopImpersonate'])->name('impersonation.leave');
 
     });
+
+   
 
     // dashboard user
     Route::get('/dashboard/user', [DashboardController::class, 'dashboardUser'])->middleware(['auth', 'verified'])->name('dashboard.user');
@@ -249,7 +253,9 @@ Route::middleware(['auth'])->group(function () {
     // impersonate response user
     Route::post('/impersonation/respond/{requestId}', [InboxController::class, 'respondImpersonate'])->name('impersonation.respond');
 
-
+    // Ekternal
+    Route::post('/diklat-eksternal/upload-bukti/{id}', [NonFormalController::class, 'uploadBukti'])->name('diklat.eksternal.upload-bukti');
+    Route::get('/RencanaDiklat/RPT/PN/preview/{id}', [NonFormalController::class, 'preview'])->name('Diklat.eksternal.preview');
     Route::get('/Admin/Eksternal', [NonFormalController::class, 'indexbyADMIN'])->name('Eksternal.Tersertivikasi.index');
     Route::get('/Admin/Eksternal/preview/{id}', [NonFormalController::class, 'previewAdminEksternal'])->name('Eksternal.Tersertivikasi.preview');
     Route::post('/Admin/Eksternal/storeProgram', [NonFormalController::class, 'storeProgrambyADMIN'])->name('Eksternal.Tersertivikasi.storeProgram');

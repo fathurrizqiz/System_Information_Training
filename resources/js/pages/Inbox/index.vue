@@ -147,11 +147,7 @@ const lihatDokumenHLC = (dokumen: string) => {
 };
 
 const lihatDokumenEksternal = (id: number) => {
-    window.open(
-        `/RencanaDiklat/RPT/PN/preview/${id}`,
-        '_blank',
-        'noopener,noreferrer',
-    );
+    window.open(route('Diklat.eksternal.preview', { id }), '_blank', 'noopener,noreferrer');
 };
 </script>
 

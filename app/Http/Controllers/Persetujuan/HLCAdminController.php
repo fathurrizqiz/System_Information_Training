@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HLCManajement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class HLCAdminController extends Controller
@@ -49,5 +50,32 @@ class HLCAdminController extends Controller
         return Inertia::render('Diklat/Persetujuan/HLCAdmin/Index', [
             'hlc' => $hlc
         ]);
+    }
+    
+    public function preview($id)
+    {
+        $diklat = HLCManajement::findOrFail($id);
+        $disk = Storage::disk('s3');
+
+        if (!$diklat->dokumen || !$disk->exists($diklat->dokumen)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return redirect()->away(
+            $disk->temporaryUrl($diklat->dokumen, now()->addMinutes(30))
+        );
+    }
+    public function previewBuktiHadir($id)
+    {
+        $diklat = HLCManajement::findOrFail($id);
+        $disk = Storage::disk('s3');
+
+        if (!$diklat->bukti_hadir || !$disk->exists($diklat->bukti_hadir)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        return redirect()->away(
+            $disk->temporaryUrl($diklat->bukti_hadir, now()->addMinutes(30))
+        );
     }
 }

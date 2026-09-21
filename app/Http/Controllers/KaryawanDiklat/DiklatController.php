@@ -252,7 +252,7 @@ class DiklatController extends Controller
             $extension = $file->getClientOriginalExtension();
 
             // 2. Buat nama file kustom
-            $filename = 'diklat_mandiri_' . time() . '_' . rand(10, 99) . '.' . $extension;
+            $filename = 'diklat_mandiri_' . $validated['nrp'] . '_' . time() . '.' . $extension;
 
             $path = $file->storeAs('diklat_files', $filename, 's3'); // Simpan path/object key ke database 
             $validated['file_path'] = $path;
@@ -370,7 +370,8 @@ class DiklatController extends Controller
         // Proses upload file jika ada
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('diklat_files', 's3');
+            $filename = 'diklat_mandiri_' . $diklat->nrp . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('diklat_files', $filename, 's3');
             $validated['file_path'] = $path;
         }
 

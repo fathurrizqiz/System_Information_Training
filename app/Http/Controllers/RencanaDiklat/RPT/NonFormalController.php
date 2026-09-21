@@ -27,7 +27,7 @@ class NonFormalController extends Controller
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/index', [
             'karyawan' => $karyawan,
             'program' => $program,
-           'templates' => $templates,
+            'templates' => $templates,
         ]);
     }
     public function storeProgram(Request $request)
@@ -73,8 +73,8 @@ class NonFormalController extends Controller
         if ($request->hasFile('dokumen')) {
             $file = $request->file('dokumen');
 
-            // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
-            $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+            // Membuat nama file unik: diklat_eksternal_nrp_timestamp.ekstensi
+            $namaFile = 'diklat_eksternal_' . ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
 
             // Simpan file ke dalam folder 'public/diklat_eksternal'
             $path = $file->storeAs('diklat_eksternal_', $namaFile, 's3');
@@ -201,21 +201,21 @@ class NonFormalController extends Controller
         if ($request->hasFile('dokumen')) {
 
             // Hapus file lama jika ada
-            if ($diklat->dokumen && Storage::disk('public')->exists($diklat->dokumen)) {
-                Storage::disk('public')->delete($diklat->dokumen);
+            if ($diklat->dokumen && Storage::disk('s3')->exists($diklat->dokumen)) {
+                Storage::disk('s3')->delete($diklat->dokumen);
             }
 
             $file = $request->file('dokumen');
 
             $namaFile =
-                ($validate['nrp'] ?? 'karyawan')
+                'diklat_eksternal_' . ($validate['nrp'] ?? 'karyawan')
                 . '_' . time()
                 . '.' . $file->getClientOriginalExtension();
 
             $path = $file->storeAs(
                 'dokumen_diklat',
                 $namaFile,
-                'public'
+                's3'
             );
 
             $validate['dokumen'] = $path;
@@ -320,7 +320,7 @@ class NonFormalController extends Controller
             $file = $request->file('dokumen');
 
             $namaFile =
-                $diklat->nrp . 'bukti_eksternal_' . time() . '.' .
+                'bukti_hadir_eksternal_' . $diklat->nrp . '_' . time() . '.' .
                 $file->getClientOriginalExtension();
 
             $path = $file->storeAs(
@@ -354,7 +354,7 @@ class NonFormalController extends Controller
             $disk->temporaryUrl($diklat->bukti_hadir, now()->addMinutes(30))
         );
     }
-    
+
     // konfirmasi admin
 
     public function approveKehadiran($id)
@@ -384,23 +384,26 @@ class NonFormalController extends Controller
     {
         $karyawan = Karyawans::all();
         $program = ProgramEksternal::with('eksternal.karyawan')->latest()->get();
-        
+
         return Inertia::render('RencanaDiklat/RPT/PendidikanNonFormal/IndexAdmin', [
             'karyawan' => $karyawan,
             'program' => $program,
-           
+
         ]);
     }
     public function previewAdminEksternal($id)
     {
         $diklat = DiklatEksternal::findOrFail($id);
+        $disk = Storage::disk('s3');
+        $path = $diklat->bukti_hadir ?? $diklat->dokumen;
 
-        if (!$diklat->file_path || !Storage::disk('public')->exists($diklat->bukti_hadir)) {
+        if (!$path || !$disk->exists($path)) {
             abort(404, 'File tidak ditemukan.');
         }
-      
 
-        return response()->file(storage_path('app/public/' . $diklat->bukti_hadir));
+        return redirect()->away(
+            $disk->temporaryUrl($path, now()->addMinutes(30))
+        );
     }
     public function storeProgrambyADMIN(Request $request)
     {
@@ -445,11 +448,11 @@ class NonFormalController extends Controller
         if ($request->hasFile('bukti_hadir')) {
             $file = $request->file('bukti_hadir');
 
-            // Membuat nama file unik: nrp_timestamp.ekstensi (contoh: 005191201_168456789.pdf)
-            $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+            // Membuat nama file unik: bukti_hadir_eksternal_nrp_timestamp.ekstensi
+            $namaFile = 'bukti_hadir_eksternal_' . ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
 
             // Simpan file ke dalam folder 'public/diklat_eksternal'
-            $path = $file->storeAs('diklat_eksternal_', $namaFile, 'public');
+            $path = $file->storeAs('diklat_eksternal_', $namaFile, 's3');
 
             // Simpan path/nama file ke array validate untuk dimasukkan ke database
             $validate['bukti_hadir'] = $path;
@@ -477,9 +480,9 @@ class NonFormalController extends Controller
             'nama_diklat' => 'required|string|max:255',
             'tahun' => 'required|string|max:255',
         ]);
-        
+
         ProgramEksternal::findOrFail($id)->update($validate);
-        
+
         // Return bisa disesuaikan dengan rute Admin kamu
         return redirect()->back()->with('success', 'Program berhasil diperbarui oleh Admin');
     }
@@ -505,19 +508,19 @@ class NonFormalController extends Controller
         $tanggalMulai = Carbon::parse($validate['tanggal_mulai']);
         $tanggalSelesai = Carbon::parse($validate['tanggal_selesai']);
         $selisihHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
-        
+
         $validate['jam_diklat'] = $validate['jam_diklat'] * $selisihHari;
 
         if ($request->hasFile('dokumen')) {
             // Hapus file lama jika ada
-            if ($diklat->dokumen && Storage::disk('public')->exists($diklat->dokumen)) {
-                Storage::disk('public')->delete($diklat->dokumen);
+            if ($diklat->dokumen && Storage::disk('s3')->exists($diklat->dokumen)) {
+                Storage::disk('s3')->delete($diklat->dokumen);
             }
 
             $file = $request->file('dokumen');
-            $namaFile = ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
-            
-            $path = $file->storeAs('diklat_eksternal_', $namaFile, 'public');
+            $namaFile = 'diklat_eksternal_' . ($validate['nrp'] ?? 'karyawan') . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            $path = $file->storeAs('diklat_eksternal_', $namaFile, 's3');
             $validate['dokumen'] = $path;
         }
 
@@ -535,15 +538,15 @@ class NonFormalController extends Controller
     public function destroyDetailbyADMIN($id)
     {
         $eksternal = DiklatEksternal::findOrFail($id);
-        
+
         // Hapus file dokumen jika ada
-        if ($eksternal->dokumen && Storage::disk('public')->exists($eksternal->dokumen)) {
-            Storage::disk('public')->delete($eksternal->dokumen);
+        if ($eksternal->dokumen && Storage::disk('s3')->exists($eksternal->dokumen)) {
+            Storage::disk('s3')->delete($eksternal->dokumen);
         }
 
         // Hapus bukti hadir jika ada
-        if ($eksternal->bukti_hadir && Storage::disk('public')->exists($eksternal->bukti_hadir)) {
-            Storage::disk('public')->delete($eksternal->bukti_hadir);
+        if ($eksternal->bukti_hadir && Storage::disk('s3')->exists($eksternal->bukti_hadir)) {
+            Storage::disk('s3')->delete($eksternal->bukti_hadir);
         }
 
         $nrp = $eksternal->nrp;
@@ -564,7 +567,7 @@ class NonFormalController extends Controller
         // Hati-hati: Pastikan apakah menghapus program juga perlu menghapus detail dan me-rekap ulang? 
         // Kalau iya, logikanya harus ditambahkan. Kalau tidak (cascade on delete di database), cukup delete saja.
         $program->delete();
-        
+
         return redirect()->back()->with('success', 'Program diklat eksternal berhasil dihapus');
     }
 
