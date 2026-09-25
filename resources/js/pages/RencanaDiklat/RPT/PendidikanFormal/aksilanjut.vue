@@ -3,7 +3,7 @@ import Input from '@/components/ui/input/Input.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -43,8 +43,31 @@ const props = defineProps<{
     templates: any[];
 }>();
 
-const selectedPeriode = ref(props.runningPeriodeId?.toString() || '');
+const periodeStorageKey = `diklat:selected-periode:${props.detail_id}`;
+const storedPeriodeId =
+    typeof window !== 'undefined'
+        ? window.localStorage.getItem(periodeStorageKey)
+        : null;
+const availablePeriodeIds = new Set(
+    props.periode.map((periode) => String(periode.id)),
+);
+const initialPeriodeId =
+    props.runningPeriodeId?.toString() ||
+    (storedPeriodeId && availablePeriodeIds.has(storedPeriodeId)
+        ? storedPeriodeId
+        : '');
+const selectedPeriode = ref(initialPeriodeId);
 const jam = ref('');
+
+watch(selectedPeriode, (periodeId) => {
+    if (typeof window === 'undefined') return;
+
+    if (periodeId) {
+        window.localStorage.setItem(periodeStorageKey, periodeId);
+    } else {
+        window.localStorage.removeItem(periodeStorageKey);
+    }
+});
 // const isPeriodeActive = computed(() => {
 //     if (!props.isPeriodeRunning || !props.runningPeriodeId) {
 //         return false;
@@ -199,8 +222,6 @@ const TambahLinkZoom = () => {
     );
 };
 
-
-
 const selectedTemplate = ref(
     props.templates.length > 0 ? props.templates[0].slug : '',
 );
@@ -238,7 +259,9 @@ function goToPreTest() {
         return;
     }
     // Tambahkan ?periode_id=... di akhir URL
-    router.get(`/DiklatInternal/pree/${props.detail_id}?periode_id=${selectedPeriode.value}`);
+    router.get(
+        `/DiklatInternal/pree/${props.detail_id}?periode_id=${selectedPeriode.value}`,
+    );
 }
 
 function goToPostTest() {
@@ -247,7 +270,9 @@ function goToPostTest() {
         return;
     }
     // Tambahkan ?periode_id=... di akhir URL
-    router.get(`/DiklatInternal/post/${props.detail_id}?periode_id=${selectedPeriode.value}`);
+    router.get(
+        `/DiklatInternal/post/${props.detail_id}?periode_id=${selectedPeriode.value}`,
+    );
 }
 </script>
 
@@ -286,33 +311,38 @@ function goToPostTest() {
 
                 <div class="mt-4 flex items-center justify-between">
                     <div
-                    for="template-select"
-                    class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
-                >
-                    <label
-                        class="text-xs font-bold tracking-widest text-slate-500 uppercase"
-                        >Pilih Template Pesan:</label
+                        for="template-select"
+                        class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row md:items-center"
                     >
-                    <select
-                        v-model="selectedTemplate"
-                        class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
-                    >
-                        <option value="" disabled>-- Pilih Template --</option>
-                        <option
-                            v-for="temp in templates"
-                            :key="temp.id"
-                            :value="temp.slug"
+                        <label
+                            class="text-xs font-bold tracking-widest text-slate-500 uppercase"
+                            >Pilih Template Pesan:</label
                         >
-                            {{ temp.nama_template }}
-                        </option>
-                    </select>
-                    <p class="text-[10px] text-blue-500 italic">
-                        *Pilih template terlebih dahulu sebelum klik 'Umumkan
-                        Email'
-                    </p>
-                </div>
-                    <button :disabled="!selectedPeriode"
-                        @click.stop="kirimNotifikasi(selectedPeriode, 'internal')"
+                        <select
+                            v-model="selectedTemplate"
+                            class="h-9 rounded-lg border-slate-300 bg-white text-sm focus:border-blue-500 focus:ring-blue-500/20 md:w-64"
+                        >
+                            <option value="" disabled>
+                                -- Pilih Template --
+                            </option>
+                            <option
+                                v-for="temp in templates"
+                                :key="temp.id"
+                                :value="temp.slug"
+                            >
+                                {{ temp.nama_template }}
+                            </option>
+                        </select>
+                        <p class="text-[10px] text-blue-500 italic">
+                            *Pilih template terlebih dahulu sebelum klik
+                            'Umumkan Email'
+                        </p>
+                    </div>
+                    <button
+                        :disabled="!selectedPeriode"
+                        @click.stop="
+                            kirimNotifikasi(selectedPeriode, 'internal')
+                        "
                         class="m-3 flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs shadow-sm transition hover:animate-pulse hover:bg-blue-100 hover:text-blue-700"
                     >
                         <svg
@@ -334,8 +364,8 @@ function goToPostTest() {
                             <circle cx="18" cy="5" r="3" />
                         </svg>
                     </button>
-                </div >
-                
+                </div>
+
                 <div class="mt-4 flex items-center justify-between">
                     <span class="text-gray-600">Status Periode:</span>
                     <span
@@ -478,19 +508,13 @@ function goToPostTest() {
                 </h2>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     <button
-                        @click="
-                            goToPreTest()
-                        "
+                        @click="goToPreTest()"
                         class="flex-1 rounded-md bg-teal-600 px-4 py-2.5 text-white"
                     >
                         Pre-test
                     </button>
                     <button
-                        @click="
-                          
-                               goToPostTest()
-                            
-                        "
+                        @click="goToPostTest()"
                         class="flex-1 rounded-md bg-blue-600 px-4 py-2.5 text-white"
                     >
                         Post-test

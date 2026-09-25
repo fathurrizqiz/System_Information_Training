@@ -6,6 +6,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
+import { formatDate } from '@/helpers/date';
 
 /* =====================
    MENU
@@ -460,7 +461,7 @@ function manualRefresh() {
                                 </td>
                                 <td class="border px-3 py-2 text-center">{{ i + 1 }}</td>
                                 <td class="border px-3 py-2 font-medium">{{ k.nama_karyawan }}</td>
-                                <td class="border px-3 py-2">{{ k.tmt }}</td>
+                                <td class="border px-3 py-2">{{ formatDate(k.tmt) }}</td>
                                 <td class="border px-3 py-2">{{ k.nrp }}</td>
                                 <td class="border px-3 py-2">{{ k.bagian }}</td>
                                 <td class="border px-3 py-2">{{ k.unit_kerja }}</td>
