@@ -18,6 +18,7 @@ use App\Http\Controllers\Persetujuan\HLCAdminController;
 use App\Http\Controllers\RencanaDiklat\RPT\DetailPeriodeController;
 use App\Http\Controllers\RencanaDiklat\RPT\DiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\DokumentasiController;
+use App\Http\Controllers\RencanaDiklat\RPT\ImportDiklatInternalController;
 use App\Http\Controllers\RencanaDiklat\RPT\NonFormalController;
 use App\Http\Controllers\RencanaDiklat\RPT\pendidikanController;
 use App\Http\Controllers\RencanaDiklat\RPT\PostPreeController;
@@ -71,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/Materi/delete/{id}', [MateriController::class, 'delete']);
         //Internal
         Route::get('/RencanaDiklat/RPT/PF', [DiklatInternalController::class, 'index'])->name('PF.index');
+        Route::post('/RencanaDiklat/RPT/PF/import', [ImportDiklatInternalController::class, 'store'])->name('PF.import');
         Route::post('/RencanaDiklat/RPT/PF/store', [DiklatInternalController::class, 'storeProgram'])->name('PF.store');
         Route::delete('/RencanaDiklat/RPT/PF/delete/{id}', [DiklatInternalController::class, 'destroyProgram'])->name('PF.destroy');
         Route::delete('/RencanaDiklat/RPT/PF/detail/delete/{id}', [DiklatInternalController::class, 'destroyDetail'])->name('PF.destroy-detail');

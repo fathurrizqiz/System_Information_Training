@@ -74,7 +74,42 @@ const detailForm = useForm({
     pengajar: '',
 });
 
+const importForm = useForm<{ file: File | null }>({
+    file: null,
+});
+const importFileInput = ref<HTMLInputElement | null>(null);
+
 // --- Methods ---
+
+const handleImportFile = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    importForm.file = input.files?.[0] ?? null;
+};
+
+const importDiklat = () => {
+    if (!importForm.file) {
+        toast.error('Pilih file Excel terlebih dahulu.');
+        return;
+    }
+
+    importForm.post('/RencanaDiklat/RPT/PF/import', {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Data program dan detail diklat berhasil diimpor.');
+            importForm.reset();
+            if (importFileInput.value) {
+                importFileInput.value.value = '';
+            }
+            router.reload();
+        },
+        onError: (errors) => {
+            Object.values(errors).forEach((error) => {
+                toast.error(error);
+            });
+        },
+    });
+};
 
 // --- Program Modal Methods ---
 const openAddProgramModal = () => {
@@ -312,7 +347,7 @@ const kirimNotifikasi = (id: number, tipe: string) => {
     </div>
         <div class="p-5">
             <!-- Header with Add Program Button -->
-            <div class="mb-6 flex items-center justify-between">
+            <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <button
                     @click="openAddProgramModal"
                     class="flex w-46 justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 bg-[length:200%_100%] bg-left py-3 font-semibold text-white shadow-lg transition-all duration-500 hover:scale-[1.01] hover:bg-right"
@@ -332,6 +367,38 @@ const kirimNotifikasi = (id: number, tipe: string) => {
                     </svg>
                     Tambah Program
                 </button>
+                
+                <form
+                    class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                    @submit.prevent="importDiklat"
+                >
+                    <div class="min-w-0">
+                        <label
+                            for="diklat-excel"
+                            class="mb-1 block text-sm font-semibold text-slate-700"
+                        >
+                            Impor dari Excel
+                        </label>
+                        <input
+                            ref="importFileInput"
+                            id="diklat-excel"
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            class="block w-full max-w-sm text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-100 file:px-3 file:py-2 file:font-semibold file:text-blue-700 hover:file:bg-blue-200"
+                            @change="handleImportFile"
+                        />
+                        <p class="mt-1 text-xs text-slate-500">
+                            Kolom: Nama Program, Kategori, Tahun, Nama Diklat, Keterangan, Pengajar. Satu baris untuk setiap detail; data program boleh berulang.
+                        </p>
+                    </div>
+                    <button
+                        type="submit"
+                        :disabled="!importForm.file || importForm.processing"
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {{ importForm.processing ? 'Mengimpor...' : 'Impor Data' }}
+                    </button>
+                </form>
             </div>
             <div class="flex flex-col gap-3 md:flex-row md:items-center">
                 <Input
